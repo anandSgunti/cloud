@@ -518,6 +518,41 @@ This log is:
 └─ Available for regulators
 ```
 
+
+---
+
+## Assumptions & Clarifications
+
+###  Critical Assumption: 24-Hour Window Start Time
+
+**Assumption**: The 24-hour deletion window begins from **face detection time**.
+
+**Rationale**:
+- We cannot control when employees take photos
+- Photos may be uploaded hours/days after capture
+- Starting from detection time guarantees full 24-hour processing window
+
+**Alternative Interpretation Risk**:
+If the 24-hour window starts from the **original photo timestamp** (EXIF):
+- Photos might already be 23 hours old when we receive them
+- We would have < 1 hour to detect and delete
+- Current design would NOT be compliant
+
+**Mitigation Strategy** (if needed):
+Add photo age validator:
+```
+IF photo_age > 20 hours:
+    └─ Fast-track delete (skip normal flow)
+       Assume face exists (conservative)
+```
+
+**Production Recommendation**:
+- Clarify with legal/compliance team before implementation
+- Consider adding age validator regardless (defense in depth)
+- Default to conservative interpretation (earlier deletion is safer)
+
+---
+
 ---
 
 ## Monitoring Dashboard
