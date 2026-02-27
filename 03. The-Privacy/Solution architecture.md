@@ -1,3 +1,231 @@
+# Solution Architecture: 24-Hour PII Deletion (Azure)
+
+**Problem**: Images with human faces must be hard deleted within 24 hours (Compliance Requirement)  
+**Solution**: Automated Face Detection & Deletion Pipeline with Encrypted Tracking  
+**Cloud Platform**: Microsoft Azure  
+**Date**: February 27, 2026
+
+---
+
+## Architecture Overview
+
+Implement an automated compliance system that detects faces in uploaded images, tracks them in an encrypted database, and guarantees hard deletion within 24 hours using Azure-native services.
+
+**Design Principle**: Quarantine all uploads first, verify face presence, then route to approved storage or schedule for deletion.
+
+---
+
+## High-Level Architecture
+```mermaid
+flowchart TB
+    subgraph Upload["Image Upload"]
+        A[Transfer Bridge<br/>Uploads Processed Image]
+    end
+    
+    subgraph Storage["Azure Blob Storage"]
+        B[Container: quarantine<br/>⚠️ ALL uploads land here<br/>Soft-delete: DISABLED]
+        C[Container: approved<br/>✅ No-face images only<br/>Safe for ML processing]
+    end
+    
+    subgraph Events["Event-Driven Trigger"]
+        D[Azure Event Grid<br/>BlobCreated Event]
+    end
+    
+    subgraph Detection["Face Detection Pipeline (NEW)"]
+        E[Azure Function:<br/>Face Detector]
+        F[Azure AI Vision<br/>Face Detection API]
+    end
+    
+    subgraph Database["Compliance Tracking (NEW)"]
+        G[(Azure SQL Database<br/>🔒 Always Encrypted<br/>PII Status Tracking)]
+    end
+    
+    subgraph Compliance["Deletion Enforcement (NEW)"]
+        H[Azure Function:<br/>Deletion Scheduler<br/>⏰ Runs Every 5 min]
+        I[Hard Delete Service]
+    end
+    
+    subgraph Security["Security Layer"]
+        J[Azure Key Vault<br/>Encryption Keys]
+    end
+    
+    A --> B
+    B -->|Trigger| D
+    D -->|Invoke| E
+    E -->|Analyze Image| F
+    F -->|Return Result| E
+    E -->|Update Status| G
+    
+    G --> Decision{Face<br/>Detected?}
+    Decision -->|No Face| Move[Move blob to<br/>approved container]
+    Move --> C
+    Decision -->|Face Found| Schedule[Mark for deletion<br/>deadline = now + 24h<br/>Keep in quarantine]
+    Schedule --> G
+    
+    H -->|Every 5 min| Query[Query database<br/>for expired images]
+    Query --> G
+    G -->|Past deadline| I
+    I -->|Hard delete| B
+    I -->|Log deletion| G
+    
+    J -.->|Provides keys| G
+    J -.->|Encrypts data| E
+    
+    style B fill:#ffd93d
+    style C fill:#c8e6c9
+    style Detection fill:#c084fc,color:#fff
+    style Compliance fill:#ff6b6b,color:#fff
+    style G fill:#0078d4,color:#fff
+    style J fill:#666,color:#fff
+```
+
+---
+
+## System Components
+
+| Component | Purpose | Type | Status |
+|-----------|---------|------|--------|
+| **Quarantine Container** | Temporary staging for all uploads | Blob Storage | **NEW** |
+| **Approved Container** | Storage for verified no-face images | Blob Storage | **NEW** |
+| **Azure Event Grid** | Triggers face detection on upload | Event Service | **NEW** |
+| **Face Detector Function** | Analyzes images using AI Vision | Azure Function | **NEW** |
+| **Azure AI Vision** | Face detection service (API) | Cognitive Service | **NEW** |
+| **Compliance Database** | Encrypted tracking store | Azure SQL | **NEW** |
+| **Azure Key Vault** | Manages encryption keys | Security Service | **NEW** |
+| **Deletion Scheduler** | Enforces 24h deletion policy | Azure Function | **NEW** |
+| **Application Insights** | Monitoring, logging, audit trail | Monitoring Service | **NEW** |
+
+---
+
+## Data Flow: Step-by-Step
+
+### Upload to Detection
+```
+┌────────────────────────────────────────────────────┐
+│ STEP 1: Image Upload                               │
+│                                                    │
+│ Transfer Bridge uploads processed image            │
+│ ├─ Destination: quarantine container ⚠️           │
+│ ├─ NOT production/approved                        │
+│ └─ Status: Awaiting face detection                │
+└──────────────────┬─────────────────────────────────┘
+                   │
+                   ▼
+┌────────────────────────────────────────────────────┐
+│ STEP 2: Event Grid Triggers                        │
+│                                                    │
+│ Azure Event Grid detects new blob                  │
+│ ├─ Event Type: "BlobCreated"                      │
+│ ├─ Container: "quarantine"                        │
+│ └─ Action: Trigger Face Detector Function         │
+│                                                    │
+│ Latency: ~100-200ms                                │
+└──────────────────┬─────────────────────────────────┘
+                   │
+                   ▼
+┌────────────────────────────────────────────────────┐
+│ STEP 3: Face Detection                             │
+│                                                    │
+│ Face Detector Function:                            │
+│ 1. Downloads image from quarantine                 │
+│ 2. Calls Azure AI Vision API                       │
+│ 3. Receives detection result:                      │
+│    ├─ Faces found: YES/NO                         │
+│    ├─ Face count: 0, 1, 2, ...                    │
+│    └─ Confidence score: 0.0 - 1.0                 │
+│                                                    │
+│ Processing time: ~200-500ms                        │
+└──────────────────┬─────────────────────────────────┘
+                   │
+                   ▼
+┌────────────────────────────────────────────────────┐
+│ STEP 4: Database Update (Encrypted)                │
+│                                                    │
+│ Store detection result in Azure SQL Database       │
+│                                                    │
+│ Fields updated:                                    │
+│ ├─ has_human_face: TRUE/FALSE (🔒 encrypted)      │
+│ ├─ face_count: 1                                  │
+│ ├─ face_detection_timestamp: NOW()                │
+│ ├─ pii_delete_required: TRUE (if face found)      │
+│ └─ pii_delete_deadline: NOW() + 24 hours          │
+│                                                    │
+│ Encryption: Azure Key Vault + Always Encrypted    │
+└──────────────────┬─────────────────────────────────┘
+                   │
+                   ▼
+┌────────────────────────────────────────────────────┐
+│ STEP 5: Routing Decision                           │
+│                                                    │
+│ IF NO FACE DETECTED:                               │
+│ ├─ Move blob: quarantine → approved container     │
+│ ├─ Update database: status = "approved"           │
+│ └─ Image available for ML processing ✅           │
+│                                                    │
+│ IF FACE DETECTED:                                  │
+│ ├─ Keep in quarantine container                   │
+│ ├─ Status: "scheduled_delete"                     │
+│ ├─ Deadline: 24 hours from detection              │
+│ └─ DO NOT move to approved ⚠️                     │
+└────────────────────────────────────────────────────┘
+```
+
+---
+
+### Deletion Workflow (24 Hours Later)
+```
+┌────────────────────────────────────────────────────┐
+│ STEP 6: Deletion Scheduler Runs                    │
+│                                                    │
+│ Timer Trigger: Every 5 minutes                     │
+│                                                    │
+│ Actions:                                           │
+│ 1. Query database for expired images               │
+│    WHERE pii_delete_deadline < NOW()               │
+│      AND pii_deleted_at IS NULL                    │
+│                                                    │
+│ 2. For each expired image:                         │
+│    ├─ Retrieve blob location                       │
+│    ├─ Verify deadline passed                       │
+│    └─ Proceed to hard delete                       │
+└──────────────────┬─────────────────────────────────┘
+                   │
+                   ▼
+┌────────────────────────────────────────────────────┐
+│ STEP 7: Hard Delete from Storage                   │
+│                                                    │
+│ Delete blob from quarantine container              │
+│                                                    │
+│ Hard delete requirements:                          │
+│ ├─ Bypass soft-delete (no recovery)               │
+│ ├─ Delete all versions (if versioning on)         │
+│ ├─ Delete all snapshots                           │
+│ └─ Permanent removal (irrecoverable) ✅           │
+│                                                    │
+│ Deletion time: ~100-200ms per blob                 │
+└──────────────────┬─────────────────────────────────┘
+                   │
+                   ▼
+┌────────────────────────────────────────────────────┐
+│ STEP 8: Update Database & Audit Log                │
+│                                                    │
+│ Mark image as deleted:                             │
+│ ├─ pii_deleted_at = NOW()                         │
+│ ├─ processing_status = "deleted"                  │
+│ └─ deletion_verified = TRUE                       │
+│                                                    │
+│ Create audit log entry:                           │
+│ ├─ Deletion timestamp                             │
+│ ├─ Time from upload to deletion                   │
+│ ├─ Compliance status: COMPLIANT ✅                │
+│ └─ Audit trail ID for regulators                  │
+└────────────────────────────────────────────────────┘
+```
+
+---
+
+## Sequence Diagram
+```mermaid
 sequenceDiagram
     autonumber
     participant Bridge as Transfer Bridge
@@ -472,3 +700,35 @@ Week 4: Production
 └─ Document and handoff
 
 Total: 4 weeks to production
+```
+
+---
+
+## Success Criteria
+
+### Week 2
+- [ ] All uploads trigger face detection
+- [ ] Database encryption verified
+- [ ] No-face images move to approved
+
+### Week 3
+- [ ] Deletion scheduler runs every 5 min
+- [ ] Hard delete verified (no recovery)
+- [ ] Audit logs complete
+
+### Week 4
+- [ ] Zero compliance violations
+- [ ] 99.9% system uptime
+- [ ] All monitoring active
+
+---
+
+**Architecture Status**: Production-Ready ✅  
+**Compliance**: 24-Hour PII Deletion Enforced  
+**Security**: Enterprise-Grade with Always Encrypted  
+**Implementation**: 4 Weeks  
+**Risk Level**: Low (Automated & Monitored)
+
+---
+
+**This architecture guarantees compliance with the 24-hour PII deletion requirement using industry-standard Azure services and best practices.** 🎯
