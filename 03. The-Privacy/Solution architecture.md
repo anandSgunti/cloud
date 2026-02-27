@@ -473,147 +473,7 @@ Verification Method:
 
 ---
 
-## Error Handling Strategy
-
-### Face Detection Failures
-```
-Scenario: Azure AI Vision API unavailable
-
-Conservative Approach (Safer for Compliance):
-├─ Retry 3 times with exponential backoff
-├─ If still failing:
-│  ├─ ASSUME face exists (conservative)
-│  ├─ Mark: pii_delete_required = TRUE
-│  ├─ Schedule deletion (24h deadline)
-│  └─ Alert operations team
-└─ Result: Image gets deleted (safer than risk)
-
-Why conservative?
-└─ Better to delete a no-face image than keep a face image
-   Prioritizes compliance over convenience
-```
-
-### Deletion Scheduler Failures
-```
-Scenario: Deletion Scheduler function crashes
-
-Mitigation:
-├─ Azure Functions auto-restart
-├─ Next run catches up (queries all overdue)
-├─ Alert if no deletions for > 1 hour
-└─ Lifecycle policy failsafe (48h)
-
-Maximum Delay:
-└─ 5 minutes (next scheduler run)
-   Still within 24-hour window ✅
-```
-
-### Database Encryption Key Unavailable
-```
-Scenario: Key Vault temporarily down
-
-Impact:
-├─ Cannot encrypt new face detections
-├─ Cannot decrypt for deletion queries
-
-Response:
-├─ Queue images for reprocessing
-├─ Alert critical error
-├─ Do NOT delete without key verification
-└─ System pauses until Key Vault recovers
-
-Safety First:
-└─ Never compromise encryption integrity
-   Wait for Key Vault recovery ✅
-```
-
-### Race Condition Prevention
-```
-Scenario: Deletion scheduler runs while detection in progress
-
-Prevention: processing_status field
-├─ 'uploaded' → Not checked yet, don't delete
-├─ 'face_detection_pending' → In progress, don't delete
-├─ 'scheduled_delete' → Ready for deletion ✅
-
-Scheduler Query:
-WHERE processing_status = 'scheduled_delete'
-  AND pii_delete_deadline < NOW()
-  AND pii_deleted_at IS NULL
-
-Result: No race condition possible ✅
-```
-
----
-
 ## Monitoring & Audit Trail
-
-### Real-Time Compliance Dashboard
-```
-┌─────────────────────────────────────────────────┐
-│  PII Compliance Dashboard - Live Status         │
-├─────────────────────────────────────────────────┤
-│                                                 │
-│  📊 Current Status                              │
-│  ├─ Images in Quarantine: 23                   │
-│  │  ├─ Awaiting Detection: 3                   │
-│  │  └─ Awaiting Deletion: 20                   │
-│  ├─ Images in Approved: 1,224                  │
-│  └─ Total Processed Today: 1,247               │
-│                                                 │
-│  ⏰ Compliance Metrics                          │
-│  ├─ Oldest Pending Deletion: 6h 23min left ✅  │
-│  ├─ Deletions Overdue: 0 ✅                    │
-│  ├─ Deletions Today: 312                       │
-│  └─ Average Time to Delete: 24h 4min ✅        │
-│                                                 │
-│  🔍 Face Detection                              │
-│  ├─ Success Rate: 99.8%                        │
-│  ├─ Faces Detected Today: 374 (30%)            │
-│  └─ API Errors: 0                              │
-│                                                 │
-│  🔒 Security Status                             │
-│  ├─ Always Encrypted: Active ✅                 │
-│  ├─ Key Vault: Healthy ✅                       │
-│  └─ Unauthorized Access: 0 ✅                   │
-│                                                 │
-│  🚨 Active Alerts                               │
-│  └─ No violations detected ✅                   │
-└─────────────────────────────────────────────────┘
-```
-
-### Audit Log Structure
-```
-Audit Trail Entry (Example):
-
-Audit ID: aud_20260228_103523_001
-Timestamp: 2026-02-28 10:35:23 UTC
-
-Image Details:
-├─ Image ID: employee_001.jpg
-├─ Uploaded: 2026-02-27 10:30:00
-├─ Face Detected: 2026-02-27 10:30:19
-├─ Face Count: 1
-└─ Confidence: 0.98
-
-Deletion Timeline:
-├─ Scheduled Deadline: 2026-02-28 10:30:19
-├─ Actual Deletion: 2026-02-28 10:35:23
-├─ Time from Upload: 24h 5min 23sec
-└─ Compliance Status: COMPLIANT ✅
-
-Deletion Verification:
-├─ Deleted from: quarantine container
-├─ Deletion Method: hard_delete
-├─ Soft-delete Bypassed: TRUE
-├─ Recovery Possible: FALSE ✅
-└─ Database Updated: TRUE
-
-System Actor:
-├─ Function: DeletionScheduler
-├─ Identity: Managed Identity
-└─ Authorization: Key Vault verified
-```
 
 ### Alert Configuration
 ```
@@ -633,102 +493,29 @@ Warning Alerts (Email Team):
 
 ## Why This Solution Works
 
-### ✅ Compliance Achieved
-```
-24-Hour Deletion Requirement:
-├─ Maximum deletion time: 24h 10min ✅
-├─ Hard delete (no recovery) ✅
-├─ Complete audit trail ✅
-└─ Automated enforcement ✅
-```
-
-### ✅ Security Implemented
-```
-Data Protection:
-├─ Always Encrypted for PII data ✅
-├─ Keys in Azure Key Vault ✅
-├─ Managed Identity (no passwords) ✅
-├─ Private network endpoints (optional) ✅
-└─ Complete access logging ✅
-```
-
-### ✅ Operationally Sound
-```
-Reliability:
-├─ Event-driven architecture (scalable) ✅
-├─ Automated deletion (no manual work) ✅
-├─ Failsafe mechanisms (lifecycle policy) ✅
-├─ Conservative error handling ✅
-└─ Real-time monitoring ✅
-```
-
-### ✅ Politically Safe
-```
-Transfer Bridge Impact:
-├─ Bridge uploads to quarantine (minor change) ✅
-├─ Bridge code unchanged ✅
-├─ No criticism of Bridge design ✅
-└─ $50k investment preserved ✅
-```
+- **Compliance**: enforced hard deletion within the required window
+- **Security**: Always Encrypted + Key Vault + managed identities
+- **Reliability**: event-driven + scheduler + failsafe lifecycle policy
+- **Minimal disruption**: Bridge remains unchanged except upload destination
 
 ---
 
-## Implementation Timeline
-```
-Week 1: Infrastructure
-├─ Create quarantine/approved containers
-├─ Setup Azure SQL with Always Encrypted
-├─ Configure Azure Key Vault
-└─ Deploy Event Grid subscriptions
+## Implementation Timeline (4 Weeks)
 
-Week 2: Face Detection
-├─ Build Face Detector Function
-├─ Integrate Azure AI Vision
-├─ Implement database encryption
-└─ Test with sample images
-
-Week 3: Deletion Automation
-├─ Build Deletion Scheduler
-├─ Implement hard delete logic
-├─ Configure alerts
-└─ End-to-end testing
-
-Week 4: Production
-├─ Security review
-├─ Deploy to production
-├─ Monitor for 48 hours
-└─ Document and handoff
-
-Total: 4 weeks to production
-```
+- **Week 1:** Storage + DB + Key Vault + Event Grid
+- **Week 2:** Face detection function + Vision integration + encryption verification
+- **Week 3:** Deletion scheduler + hard delete validation + alerts
+- **Week 4:** Production rollout + monitoring + documentation
 
 ---
 
 ## Success Criteria
 
-### Week 2
-- [ ] All uploads trigger face detection
-- [ ] Database encryption verified
-- [ ] No-face images move to approved
-
-### Week 3
-- [ ] Deletion scheduler runs every 5 min
-- [ ] Hard delete verified (no recovery)
-- [ ] Audit logs complete
-
-### Week 4
-- [ ] Zero compliance violations
-- [ ] 99.9% system uptime
-- [ ] All monitoring active
+- Zero images with faces remain stored beyond 24 hours
+- Hard-delete is irrecoverable (no soft delete/versioning escape hatches)
+- Complete, queryable audit trail exists for regulators
+- 99.9% system uptime with monitoring and alerting active
 
 ---
 
-**Architecture Status**: Production-Ready ✅  
-**Compliance**: 24-Hour PII Deletion Enforced  
-**Security**: Enterprise-Grade with Always Encrypted  
-**Implementation**: 4 Weeks  
-**Risk Level**: Low (Automated & Monitored)
-
----
-
-**This architecture guarantees compliance with the 24-hour PII deletion requirement using industry-standard Azure services and best practices.** 🎯
+**This architecture guarantees compliance with the 24-hour PII deletion requirement using Azure-native services and industry best practices.**
