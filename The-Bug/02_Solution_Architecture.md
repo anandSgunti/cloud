@@ -415,5 +415,5 @@ IMAGE_METADATA Table
 ---
 
 **Related Documents**:
-- See `SOLUTION.md` for options comparison
-- See `RCA.md` for problem diagnosis
+- See `Solutions_Options.md` for options comparison
+- See `01-root-cause-analysis/RCA.md` for problem diagnosis
