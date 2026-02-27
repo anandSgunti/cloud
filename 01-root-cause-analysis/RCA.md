@@ -435,7 +435,6 @@ Most upload libraries (boto3, Azure SDK, GCS) preserve file bytes as-is.
 | Manual Intervention | 30 min/image |
 | Project Delay | 3 weeks |
 | Model Success Rate | 94% → 28% |
-| Operational Cost | +$15k (manual labor) |
 | Team Morale | Significant impact |
 
 ---
