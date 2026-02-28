@@ -70,7 +70,7 @@ flowchart TB
 |-----------|-------------|--------|
 | **iCloud Source** | Original photos with EXIF | Existing |
 | **Pre-Processing Layer** | Downloads, extracts EXIF, stores in database | **NEW** |
-| **Azure SQL Database** | Stores metadata (GPS, timestamps, camera info) | **NEW** |
+| **Azure Table** | Stores metadata (GPS, timestamps, camera info) | **NEW** |
 | **Transfer Bridge** | Resizes, compresses, uploads images | **UNCHANGED** |
 | **Azure Blob Storage** | Stores processed images | Existing |
 | **ML Model** | Processes images using metadata from database | Updated (queries DB) |
@@ -80,118 +80,38 @@ flowchart TB
 ## Data Flow: Step-by-Step
 
 ### Visual Flow
-```
-┌─────────────────────────────────────────────────────────────┐
-│ STEP 1: Original Photo in iCloud                            │
-│                                                             │
-│ employee_001.jpg                                            │
-│ ├─ GPS: 37.7749, -122.4194                                 │
-│ ├─ Timestamp: 2026-02-20 14:23:45                          │
-│ └─ Camera: iPhone 13 Pro                                   │
-└──────────────────────┬──────────────────────────────────────┘
-                       │
-                       ▼
-┌─────────────────────────────────────────────────────────────┐
-│ STEP 2: Pre-Processing Downloads & Extracts                 │
-│                                                             │
-│ Azure Function runs:                                        │
-│ 1. Downloads image from iCloud                              │
-│ 2. Opens image file                                         │
-│ 3. Reads EXIF metadata                                      │
-│ 4. Extracts key fields:                                     │
-│    - GPS coordinates                                        │
-│    - Timestamp                                              │
-│    - Camera information                                     │
-└──────────────────────┬──────────────────────────────────────┘
-                       │
-                       ▼
-┌─────────────────────────────────────────────────────────────┐
-│ STEP 3: Store in Azure SQL Database                         │
-│                                                             │
-│ Record created:                                             │
-│ ┌─────────────────────────────────────────────────────┐   │
-│ │ image_id: "employee_001.jpg"                        │   │
-│ │ gps_latitude: 37.7749                               │   │
-│ │ gps_longitude: -122.4194                            │   │
-│ │ timestamp_original: 2026-02-20 14:23:45             │   │
-│ │ camera_make: "Apple"                                │   │
-│ │ camera_model: "iPhone 13 Pro"                       │   │
-│ │ status: "OK"                                        │   │
-│ └─────────────────────────────────────────────────────┘   │
-│                                                             │
-│ ✅ Metadata safely stored                                  │
-└──────────────────────┬──────────────────────────────────────┘
-                       │
-                       ▼
-┌─────────────────────────────────────────────────────────────┐
-│ STEP 4: Pass to Transfer Bridge                             │
-│                                                             │
-│ Pre-Processing hands image file to Bridge                   │
-│ - Bridge receives exactly what it expects                   │
-│ - No changes to Bridge interface                            │
-│ - Bridge doesn't know about pre-processing                  │
-└──────────────────────┬──────────────────────────────────────┘
-                       │
-                       ▼
-┌─────────────────────────────────────────────────────────────┐
-│ STEP 5: Bridge Processes Image (UNCHANGED)                  │
-│                                                             │
-│ Bridge does its normal work:                                │
-│ - Resizes image to 1920x1080                                │
-│ - Converts to RGB                                           │
-│ - Compresses to reduce file size                            │
-│ - ❌ EXIF gets stripped during this process                 │
-│                                                             │
-│ But we don't care! We already saved it in Step 3!           │
-└──────────────────────┬──────────────────────────────────────┘
-                       │
-                       ▼
-┌─────────────────────────────────────────────────────────────┐
-│ STEP 6: Upload to Azure Blob Storage                        │
-│                                                             │
-│ Bridge uploads processed image:                             │
-│ - Container: images                                         │
-│ - File: employee_001.jpg                                    │
-│ - No EXIF metadata in the file                              │
-│ - Upload completes successfully                             │
-└──────────────────────┬──────────────────────────────────────┘
-                       │
-                       ▼
-┌─────────────────────────────────────────────────────────────┐
-│ STEP 7: ML Model Needs to Process                           │
-│                                                             │
-│ ML model workflow:                                          │
-│ 1. Downloads image from Azure Blob Storage                  │
-│ 2. Sees that image has no EXIF                              │
-│ 3. Queries Azure SQL Database for metadata                  │
-└──────────────────────┬──────────────────────────────────────┘
-                       │
-                       ▼
-┌─────────────────────────────────────────────────────────────┐
-│ STEP 8: Database Query                                      │
-│                                                             │
-│ Query: "Get metadata for employee_001.jpg"                  │
-│                                                             │
-│ Database returns:                                           │
-│ ├─ GPS: 37.7749, -122.4194                                 │
-│ ├─ Timestamp: 2026-02-20 14:23:45                          │
-│ └─ Camera: iPhone 13 Pro                                   │
-│                                                             │
-│ Query time: ~20ms (fast!)                                   │
-└──────────────────────┬──────────────────────────────────────┘
-                       │
-                       ▼
-┌─────────────────────────────────────────────────────────────┐
-│ STEP 9: ML Model Processes Successfully                     │
-│                                                             │
-│ ML model now has:                                           │
-│ ✅ Image data (from Blob Storage)                           │
-│ ✅ GPS coordinates (from Database)                          │
-│ ✅ Timestamp (from Database)                                │
-│                                                             │
-│ Result: Processing succeeds!                                │
-│ No more NULL errors!                                        │
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    A["STEP 1: Original Photo in iCloud<br/><br/>employee_001.jpg<br/>GPS: 37.7749, -122.4194<br/>Timestamp: 2026-02-20 14:23:45<br/>Camera: iPhone 13 Pro"]
+    
+    B["STEP 2: Pre-Processing Downloads & Extracts<br/><br/>Azure Function runs:<br/>1. Downloads image from iCloud<br/>2. Opens image file<br/>3. Reads EXIF metadata<br/>4. Extracts key fields:<br/>   - GPS coordinates<br/>   - Timestamp<br/>   - Camera information"]
+    
+    C["STEP 3: Store in Azure SQL Database<br/><br/>Record created:<br/>image_id: employee_001.jpg<br/>gps_latitude: 37.7749<br/>gps_longitude: -122.4194<br/>timestamp_original: 2026-02-20 14:23:45<br/>camera_make: Apple<br/>camera_model: iPhone 13 Pro<br/>status: OK<br/><br/> Metadata safely stored"]
+    
+    D["STEP 4: Pass to Transfer Bridge<br/><br/>Pre-Processing hands image file to Bridge<br/>- Bridge receives exactly what it expects<br/>- No changes to Bridge interface<br/>- Bridge doesn't know about pre-processing"]
+    
+    E["STEP 5: Bridge Processes Image (UNCHANGED)<br/><br/>Bridge does its normal work:<br/>- Resizes image to 1920x1080<br/>- Converts to RGB<br/>- Compresses to reduce file size<br/>-  EXIF gets stripped during this process<br/><br/>But we don't care! We already saved it in Step 3!"]
+    
+    F["STEP 6: Upload to Azure Blob Storage<br/><br/>Bridge uploads processed image:<br/>- Container: images<br/>- File: employee_001.jpg<br/>- No EXIF metadata in the file<br/>- Upload completes successfully"]
+    
+    G["STEP 7: ML Model Needs to Process<br/><br/>ML model workflow:<br/>1. Downloads image from Azure Blob Storage<br/>2. Sees that image has no EXIF<br/>3. Queries Azure SQL Database for metadata"]
+    
+    H["STEP 8: Database Query<br/><br/>Query: Get metadata for employee_001.jpg<br/><br/>Database returns:<br/>GPS: 37.7749, -122.4194<br/>Timestamp: 2026-02-20 14:23:45<br/>Camera: iPhone 13 Pro<br/><br/>Query time: ~20ms (fast!)"]
+    
+    I["STEP 9: ML Model Processes Successfully<br/><br/>ML model now has:<br/> Image data (from Blob Storage)<br/> GPS coordinates (from Database)<br/> Timestamp (from Database)<br/><br/>Result: Processing succeeds!<br/>No more NULL errors!"]
+    
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+    E --> F
+    F --> G
+    G --> H
+    H --> I
+    
+    style C fill:#90ee90,stroke:#2d862d,color:#000
+    style E fill:#ffd700,stroke:#b8860b,color:#000
+    style I fill:#90ee90,stroke:#2d862d,color:#000
 ```
 
 ---
@@ -208,19 +128,19 @@ sequenceDiagram
     participant ML as ML Model
 
     PreProc->>iCloud: Download original image
-    Note over PreProc: Image has EXIF ✅
+    Note over PreProc: Image has EXIF 
     
     PreProc->>PreProc: Extract EXIF metadata
     Note over PreProc: GPS, Timestamp, Camera
     
     PreProc->>DB: Store metadata
-    Note over DB: Record saved ✅
+    Note over DB: Record saved 
     
     PreProc->>Bridge: Send image for processing
     Note over Bridge: Same interface as before
     
     Bridge->>Bridge: Resize, Convert, Compress
-    Note over Bridge: EXIF stripped ❌<br/>But we don't care!
+    Note over Bridge: EXIF stripped <br/>But we don't care!
     
     Bridge->>Blob: Upload processed image
     Note over Blob: Image saved (no EXIF)
@@ -230,10 +150,10 @@ sequenceDiagram
     
     ML->>DB: Query metadata by image_id
     DB->>ML: Return GPS, Timestamp, Camera
-    Note over ML: Got metadata! ✅
+    Note over ML: Got metadata! 
     
     ML->>ML: Process with complete data
-    Note over ML: Success! ✅
+    Note over ML: Success! 
 ```
 
 ---
