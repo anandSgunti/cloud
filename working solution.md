@@ -202,7 +202,7 @@ python main.py
 
 ![image.png](/Screenshots/Picture8.png)
 
-![image.png](/Screenshots/Picture9.jpg)
+![image.png](/Screenshots/pic9.jpg)
 
 
 **Face Detection and Metadata Insertion  after Tranfer Bridge**
@@ -228,7 +228,7 @@ python main.py
 - Confirm entry exists in `imagemetadata` table
 - Confirm deletion after SLA window (hourly purge job)
 
-![image.png](/Screenshots/Picture12.jpg)
+![image.png](/Screenshots/pic12.jpg)
 ![image.png](/Screenshots/quar.jpg)
 
 ---
@@ -241,8 +241,8 @@ python main.py
 - Confirm EXIF metadata values stored correctly in table
 - Confirm no `pii_delete_deadline` (no deletion scheduled)
 
-![image.png](/Screenshots/Picture11.jpg)
-![image.png](/Screenshots/approved.jpg)
+![image.png](/Screenshots/pic11.jpg)
+![image.png](/Screenshots/approved..jpg)
 
 ## 6.3 Table Storage Record Example
 
