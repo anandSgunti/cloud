@@ -238,9 +238,9 @@ graph LR
 
 ## Monitoring Dashboard
 ```mermaid
-graph TB
+graph LR
     subgraph Dashboard["ZeroCorp Image Pipeline - Live Status"]
-    SPACER1[" "]
+
 
         subgraph Processing[" Today's Processing"]
             P1["Images Processed: 1,247"]
