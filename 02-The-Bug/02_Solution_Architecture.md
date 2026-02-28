@@ -213,7 +213,7 @@ graph TB
   
         TOTAL["Total: $25-45/month"]
         
-        SPACER1 ~~~ AF
+     
         AF ~~~  AT
         AT ~~~  BS
         BS ~~~  AI
