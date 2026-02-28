@@ -76,7 +76,7 @@ Technically clean but increases operational risk.
 
 ---
 
-## Option 2: Pre-Processing Metadata Store (Recommended)
+## Option 2: Pre-Processing Metadata Store (Selected)
 
 ### Description
 Introduce a pre-processing layer that extracts EXIF metadata before the image enters the Bridge and stores it in a centralized database / Azure Table.
