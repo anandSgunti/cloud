@@ -158,11 +158,11 @@ Technically viable but limited in flexibility and long-term scalability.
 
 The Metadata Store provides benefits beyond fixing EXIF loss:
 
-- ✅ Store EXIF metadata for ML model  
-- ✅ Track PII for 24-hour deletion  
-- ✅ Maintain audit trail for compliance  
-- ✅ Support analytics and operational reporting  
-- ✅ Enable future metadata-driven features  
+- Store EXIF metadata for ML model  
+- Track PII for 24-hour deletion  
+- Maintain audit trail for compliance  
+- Support analytics and operational reporting  
+- Enable future metadata-driven features  
 
 This transforms a tactical bug fix into a foundational metadata management capability.
 
