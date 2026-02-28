@@ -140,89 +140,102 @@ flowchart TD
 ### Phase 2: Routing
 ```mermaid
 flowchart TD
-    UpdateFalse --> Route[4. ROUTING DECISION]
+    Start[4. ROUTING DECISION] --> Route{has_human_face?}
     
-    Route --> RouteFace{Face detected?}
+    Route -->|NO FACE| PassBridge[Pass original image<br/>to Transfer Bridge]
+    PassBridge --> Phase3[Continue to Phase 3 ↓]
     
-    RouteFace -->|NO FACE| NoFacePath[Clean path:<br/>Pass ORIGINAL to Transfer Bridge]
-    NoFacePath --> Phase3[Continue to Phase 3:<br/>ML Processing ↓]
+    Route -->|FACE DETECTED| Upload[Upload ORIGINAL<br/>to quarantine]
+    Upload --> UpdateTable[Update Table:<br/>blob_container = 'quarantine']
+    UpdateTable --> SkipBridge[Bridge SKIPPED<br/>no processing]
+    SkipBridge --> BlockML[ML Model BLOCKED]
+    BlockML --> Schedule[⏰ Scheduled for deletion<br/>jump to Phase 5]
+    Schedule --> Solved[✓ Problem 2 solved:<br/>PII isolated]
     
-    RouteFace -->|FACE DETECTED| QuarantinePath[PII protection path:]
-    QuarantinePath --> UploadQuarantine[Upload ORIGINAL to<br/>quarantine container]
-    UploadQuarantine --> UpdateContainer[Update Table Storage:<br/>• blob_container: 'quarantine'<br/>• blob_url: quarantine URL]
-    UpdateContainer --> BridgeSkipped[ Transfer Bridge SKIPPED<br/>no processing]
-    BridgeSkipped --> MLBlocked[ ML Model BLOCKED<br/>never sees PII]
-    MLBlocked --> ScheduleDeletion[ Scheduled for deletion<br/>Jump to Phase 5 cleanup]
-    
-    ScheduleDeletion --> Problem2[✓ Problem 2 Solved:<br/>PII isolated & protected ]
-    
-    style Problem1 fill:#90EE90
-    style Problem2 fill:#90EE90
-    style StoreTable fill:#4A90E2,color:#fff
-    style AzureFace fill:#0078D4,color:#fff
-    style UpdateTrue fill:#FFE4B5
-    style UpdateFalse fill:#E0E0E0
-    style QuarantinePath fill:#FFB6C6
-    style BridgeSkipped fill:#FF6B6B,color:#fff
-    style MLBlocked fill:#FF6B6B,color:#fff
-    style ScheduleDeletion fill:#FFA500,color:#fff
-    style NoFacePath fill:#B0E0B0
-    style Phase3 fill:#4A90E2,color:#fff
+    style Route fill:#FFD700,stroke:#333,stroke-width:3px
+    style PassBridge fill:#90EE90
+    style Phase3 fill:#87CEEB
+    style Upload fill:#FF6B6B,color:#fff
+    style SkipBridge fill:#FFA500,color:#fff
+    style BlockML fill:#FFA500,color:#fff
+    style Schedule fill:#FF69B4,color:#fff
+    style Solved fill:#90EE90
 ```
 
 ---
 
 ### Phase 3: Transfer Bridge Processing (No-Face Images Only)
-```
-5. TRANSFER BRIDGE WORKFLOW
-
-   Input: Original image (no face detected)
-   
-   ├─ Resize to standard dimensions
-   ├─ Convert to RGB
-   ├─ Compress for storage optimization
-   └─ STRIPS EXIF metadata (expected behavior)
-   
-   Output: Processed image (no EXIF)
-   
-   ↓
-   
-6. UPLOAD TO APPROVED CONTAINER
-   
-   ├─ Store processed image in approved container
-   ├─ blob_name = image_id
-   └─ Update Table Storage:
-       • blob_container = 'approved'
-       • processing_status = 'approved'
-       • blob_url = approved/image_id
+```mermaid
+flowchart TD
+    Start[5. TRANSFER BRIDGE WORKFLOW] --> Input[Input: Original image<br/>no face detected]
+    
+    Input --> Resize[Resize to<br/>standard dimensions]
+    Resize --> Convert[Convert to RGB]
+    Convert --> Compress[Compress for<br/>storage optimization]
+    Compress --> Strip[STRIPS EXIF metadata<br/>expected behavior]
+    
+    Strip --> Output[Output: Processed image<br/>no EXIF]
+    
+    Output --> Upload[6. UPLOAD TO APPROVED CONTAINER]
+    
+    Upload --> Store[Store processed image<br/>in approved container]
+    Store --> BlobName[blob_name = image_id]
+    BlobName --> UpdateTable[Update Table Storage:<br/>• blob_container = 'approved'<br/>• processing_status = 'approved'<br/>• blob_url = approved/image_id]
+    
+    UpdateTable --> Complete[Ready for ML processing]
+    
+    style Start fill:#4A90E2,color:#fff
+    style Input fill:#E8F4F8
+    style Resize fill:#B8E6F0
+    style Convert fill:#B8E6F0
+    style Compress fill:#B8E6F0
+    style Strip fill:#FFE4B5
+    style Output fill:#90EE90
+    style Upload fill:#4A90E2,color:#fff
+    style Store fill:#87CEEB
+    style UpdateTable fill:#87CEEB
+    style Complete fill:#90EE90
 ```
 
 ---
 
 ### Phase 4: ML Model Processing (No-Face Images Only)
-```
-7. ML MODEL RETRIEVAL & COMBINATION
-
-   Step 1: Download Processed Image
-   ├─ Fetch processed image from approved container
-   ├─ Image has NO EXIF (stripped by Bridge)
-   └─ image_id = blob_name
-   
-   Step 2: Query Metadata from Table Storage
-   ├─ Query: WHERE RowKey = image_id
-   ├─ Retrieve EXIF metadata:
-   │  • gps_latitude
-   │  • gps_longitude
-   │  • timestamp_original
-   │  • camera_make
-   │  • camera_model
-   └─ Problem 1 solved: ML Model gets metadata ✅
-   
-   Step 3: Combine & Process
-   ├─ Processed image (from approved container)
-   ├─ EXIF metadata (from Table Storage)
-   ├─ Link via image_id
-   └─ Process successfully with complete data ✅
+```mermaid
+flowchart TD
+    Start[7. ML MODEL RETRIEVAL & COMBINATION] --> Step1[Step 1: Download Processed Image]
+    
+    Step1 --> Fetch[Fetch processed image<br/>from approved container]
+    Fetch --> NoExif[Image has NO EXIF<br/>stripped by Bridge]
+    NoExif --> ImageID[image_id = blob_name]
+    
+    ImageID --> Step2[Step 2: Query Metadata from Table Storage]
+    
+    Step2 --> Query[Query: WHERE RowKey = image_id]
+    Query --> Retrieve[Retrieve EXIF metadata:<br/>• gps_latitude<br/>• gps_longitude<br/>• timestamp_original<br/>• camera_make<br/>• camera_model]
+    
+    Retrieve --> Solved1[✓ Problem 1 solved:<br/>ML Model gets metadata]
+    
+    Solved1 --> Step3[Step 3: Combine & Process]
+    
+    Step3 --> Image[Processed image<br/>from approved container]
+    Step3 --> Metadata[EXIF metadata<br/>from Table Storage]
+    
+    Image --> Link[Link via image_id]
+    Metadata --> Link
+    
+    Link --> Process[Process successfully<br/>with complete data ✅]
+    
+    style Start fill:#4A90E2,color:#fff
+    style Step1 fill:#9370DB,color:#fff
+    style Step2 fill:#9370DB,color:#fff
+    style Step3 fill:#9370DB,color:#fff
+    style Fetch fill:#E8F4F8
+    style NoExif fill:#FFE4B5
+    style Query fill:#E8F4F8
+    style Retrieve fill:#B8E6F0
+    style Solved1 fill:#90EE90
+    style Link fill:#87CEEB
+    style Process fill:#90EE90
 ```
 
 ---
