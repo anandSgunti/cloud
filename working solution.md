@@ -41,7 +41,7 @@ Resource group created successfully.
 📸 Screenshot 1: Resource Group Overview
 
 
-![Screenshot 1 – Resource Group](/mnt/data/274f582a-637a-4ad7-9c10-d8e1548a2d5b.png)
+Screenshots/Picture1.png
 
 ---
 
