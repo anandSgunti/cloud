@@ -199,57 +199,68 @@ flowchart TD
    │    - Calculate hours_to_deletion
    │
    └─ Result: Max 59 minutes to deletion
-      Problem 2 solved: PII deleted ✅
+      Problem 2 solved: PII deleted 
 ```
 
 ---
 
 ## Data Flow Diagram
-```
-┌──────────────────────────────────────────────────────────┐
-│                    COMPLETE DATA FLOW                    │
-└──────────────────────────────────────────────────────────┘
-
-Image: employee_001.jpg (no face)
-
-1. Pre-Processing:
-   ├─ Extract EXIF from original
-   └─ Table Storage INSERT:
-       RowKey: 'employee_001.jpg'
-       gps_latitude: 37.7749
-       gps_longitude: -122.4194
-       timestamp_original: '2026-02-27T14:23:45'
-       has_human_face: FALSE
-
-2. Transfer Bridge:
-   ├─ Input: employee_001.jpg (original with EXIF)
-   ├─ Process: Resize, compress, strip EXIF
-   └─ Output: employee_001.jpg (processed, NO EXIF)
-
-3. Approved Container:
-   ├─ Upload: employee_001.jpg (processed image)
-   └─ Table UPDATE:
-       blob_container: 'approved'
-       blob_url: 'approved/employee_001.jpg'
-
-4. ML Model:
-   ├─ Download: approved/employee_001.jpg
-   │   (Processed image, no EXIF in file)
-   │
-   ├─ Query Table: WHERE RowKey = 'employee_001.jpg'
-   │   Returns from Table Storage:
-   │   • gps_latitude: 37.7749
-   │   • gps_longitude: -122.4194
-   │   • timestamp_original: '2026-02-27T14:23:45'
-   │
-   ├─ Combine: Processed image + EXIF metadata
-   │
-   └─ Process: Complete data available ✅
-
-KEY LINKAGE: image_id links three components:
-├─ Original filename (from iCloud)
-├─ RowKey in Table Storage (metadata)
-└─ blob_name in approved container (processed image)
+```mermaid
+flowchart TD
+    Start[Image: employee_001.jpg<br/>📷 Original with EXIF, no face]
+    
+    subgraph Step1[1. PRE-PROCESSING]
+        Extract[Extract EXIF from original]
+        TableInsert[Table Storage INSERT<br/>────────────────<br/>RowKey: 'employee_001.jpg'<br/>gps_latitude: 37.7749<br/>gps_longitude: -122.4194<br/>timestamp_original: '2026-02-27T14:23:45'<br/>has_human_face: FALSE]
+        Extract --> TableInsert
+    end
+    
+    subgraph Step2[2. TRANSFER BRIDGE]
+        Input[Input: employee_001.jpg<br/>original with EXIF]
+        Process[Process:<br/>• Resize<br/>• Compress<br/>• Strip EXIF]
+        Output[Output: employee_001.jpg<br/>processed, NO EXIF ]
+        Input --> Process --> Output
+    end
+    
+    subgraph Step3[3. APPROVED CONTAINER]
+        Upload[Upload: employee_001.jpg<br/>processed image]
+        TableUpdate[Table UPDATE<br/>────────────────<br/>blob_container: 'approved'<br/>blob_url: 'approved/employee_001.jpg']
+        Upload --> TableUpdate
+    end
+    
+    TableStorage[(Azure Table Storage<br/>═══════════════<br/>Metadata Repository)]
+    
+    subgraph Step4[4. ML MODEL]
+        Download[Download:<br/>approved/employee_001.jpg<br/>Processed image, no EXIF in file]
+        Query[Query Table Storage<br/>WHERE RowKey = 'employee_001.jpg'<br/>────────────────<br/>Returns:<br/>• gps_latitude: 37.7749<br/>• gps_longitude: -122.4194<br/>• timestamp_original: '2026-02-27T14:23:45']
+        Combine[Combine:<br/>Processed image + EXIF metadata]
+        ProcessML[Process:<br/>Complete data available ]
+        
+        Download --> Query
+        Query --> Combine
+        Combine --> ProcessML
+    end
+    
+    Linkage[KEY LINKAGE: image_id = 'employee_001.jpg'<br/>────────────────────────────<br/>🔗 Original filename from iCloud<br/>🔗 RowKey in Table Storage metadata<br/>🔗 blob_name in approved container]
+    
+    Start --> Step1
+    Step1 --> TableStorage
+    Step1 --> Step2
+    Step2 --> Step3
+    Step3 --> TableStorage
+    TableStorage -.metadata lookup.-> Query
+    Step3 --> Step4
+    
+    Step1 -.linkage.-> Linkage
+    Step3 -.linkage.-> Linkage
+    Step4 -.linkage.-> Linkage
+    
+    style Step1 fill:#e1f5ff,stroke:#0066cc,stroke-width:2px
+    style Step2 fill:#fff3e0,stroke:#ff9800,stroke-width:2px
+    style Step3 fill:#e8f5e9,stroke:#4caf50,stroke-width:2px
+    style Step4 fill:#f3e5f5,stroke:#9c27b0,stroke-width:2px
+    style TableStorage fill:#fff4e6,stroke:#ff6f00,stroke-width:3px
+    style Linkage fill:#ffebee,stroke:#c62828,stroke-width:2px,stroke-dasharray: 5 5
 ```
 
 ---
@@ -308,7 +319,7 @@ KEY LINKAGE: image_id links three components:
 7. ML Model queries Table Storage using image_id
 8. ML Model retrieves preserved EXIF metadata
 9. ML Model combines processed image + metadata
-10. Processing succeeds ✅
+10. Processing succeeds 
 
 **Key Insight**: Metadata extracted before Bridge, retrieved after Bridge
 
@@ -340,9 +351,9 @@ KEY LINKAGE: image_id links three components:
 ```
 def process_image(image_path):
     image = load_image(image_path)
-    gps = extract_exif(image)  # Returns NULL ❌
-    timestamp = extract_timestamp(image)  # Returns NULL ❌
-    result = model.predict(image, gps, timestamp)  # FAILS ❌
+    gps = extract_exif(image)  # Returns NULL 
+    timestamp = extract_timestamp(image)  # Returns NULL 
+    result = model.predict(image, gps, timestamp)  # FAILS 
 ```
 
 ### Updated Implementation (Fixed)
@@ -363,7 +374,7 @@ def process_image(blob_name):
     
     # Step 4: Process with complete data
     # Processed image + preserved metadata
-    result = model.predict(image, gps, timestamp, camera)  # SUCCESS ✅
+    result = model.predict(image, gps, timestamp, camera)  # SUCCESS 
     
     return result
 ```
@@ -375,14 +386,14 @@ def process_image(blob_name):
 ## Compliance Timeline
 ```
 T+0:00     Image uploaded from iCloud
-           ├─ Original has EXIF ✅
-           └─ May have face ❓
+           ├─ Original has EXIF 
+           └─ May have face 
 
 T+0:01     EXIF extracted from original
            └─ Table Storage INSERT
                RowKey: image_id
-               GPS, timestamp, camera saved ✅
-               Problem 1: Metadata preserved ✅
+               GPS, timestamp, camera saved 
+               Problem 1: Metadata preserved 
 
 T+0:02     Face detection on original
            └─ Table Storage UPDATE
@@ -414,19 +425,19 @@ T+0:05     ML Model processes
            ├─ Query Table: RowKey = image_id
            ├─ Retrieve: GPS, timestamp (preserved metadata)
            ├─ Combine: Processed image + metadata
-           └─ Process successfully ✅
+           └─ Process successfully 
 
 T+1:00     Hourly deletion (face images only)
            ├─ Delete ALL quarantine blobs
-           └─ Update Table: pii_deleted_at ✅
-               Problem 2: Deleted in 58 minutes ✅
+           └─ Update Table: pii_deleted_at 
+               Problem 2: Deleted in 58 minutes 
 
 Final State:
-├─ Original EXIF: Preserved in Table ✅
-├─ Processed image: In approved (no EXIF) ✅
-├─ ML Model: Gets both via image_id linkage ✅
-├─ Face images: Deleted <1 hour ✅
-└─ Compliance: 100% ✅
+├─ Original EXIF: Preserved in Table 
+├─ Processed image: In approved (no EXIF) 
+├─ ML Model: Gets both via image_id linkage 
+├─ Face images: Deleted <1 hour 
+└─ Compliance: 100% 
 ```
 
 ---
@@ -446,7 +457,7 @@ Final State:
 - Purpose: Processed images for ML Model
 - Content: Bridge-processed images (no faces)
 - EXIF in file: **NO** (stripped by Bridge)
-- EXIF in Table: **YES** (linked by image_id) ✅
+- EXIF in Table: **YES** (linked by image_id) 
 - ML Model access: **ALLOWED**
 - Linkage: blob_name = Table RowKey = image_id
 
@@ -461,7 +472,7 @@ Final State:
 - gps_latitude, gps_longitude (extracted from original)
 - timestamp_original (preserved before Bridge)
 - blob_url: approved/image_id (processed location)
-- ML Model retrieval: Links via image_id ✅
+- ML Model retrieval: Links via image_id 
 
 **For PII Deletion (Problem 2)**:
 - face_detection_timestamp (clock starts)
@@ -469,7 +480,7 @@ Final State:
 - pii_deleted_at (actual deletion)
 - hours_to_deletion (always < 1.0)
 - blob_container: quarantine (isolated)
-- Proof: All deleted < 24 hours ✅
+- Proof: All deleted < 24 hours 
 
 ---
 
@@ -481,7 +492,7 @@ Final State:
 **Output**: Processed images to approved container  
 **Naming**: Preserves original image_id  
 **EXIF**: Strips during processing (as designed)  
-**Modifications**: **NONE** ✅
+**Modifications**: **NONE** 
 
 ### ML Model (Minimal Update)
 **Before Flow**:
@@ -497,7 +508,7 @@ Retrieve EXIF → Combine → Process (SUCCESS)
 
 **Code Change**: Add single Table Storage query
 **Complexity**: Minimal (1 API call)
-**Impact**: Restores 94%+ success rate ✅
+**Impact**: Restores 94%+ success rate 
 
 ---
 
@@ -558,15 +569,8 @@ Retrieve EXIF → Combine → Process (SUCCESS)
 
 ---
 
-## Recommendation
 
-**Status**: Approved for Implementation  
-**Priority**: High (blocks production deployment)  
-**Timeline**: 4 weeks  
-**Risk**: Low (external layers, minimal ML Model change)  
-**Cost**: ~$5/month operational  
-
-**Both critical issues solved with unified architecture that preserves Transfer Bridge workflow.** ✅
+**Both critical issues solved with unified architecture that preserves Transfer Bridge workflow.** 
 
 ---
 
