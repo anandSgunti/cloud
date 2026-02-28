@@ -238,25 +238,24 @@ graph LR
 
 ## Monitoring Dashboard
 ```mermaid
-graph TB
-    subgraph Dashboard["ZeroCorp Image Pipeline - Live Status"]
-        subgraph Processing["📊 Today's Processing"]
+graph LR
+    
+    subgraph Processing["📊 Today's Processing"]
             P1["Images Processed: 1,247"]
             P2["EXIF Extracted: 99.8%"]
             P3["Metadata Saved: 100%"]
             P4["ML Success Rate: 94.2% ✅"]
         end
         
-        subgraph Performance["⚡ Performance"]
+    subgraph Performance["⚡ Performance"]
             PERF1["Pre-Processing Time: 340ms avg"]
             PERF2["Database Write Time: 18ms avg"]
             PERF3["Metadata Query Time: 23ms avg"]
         end
         
-        subgraph Alerts["🚨 Alerts"]
+    subgraph Alerts["🚨 Alerts"]
             A1["No active alerts ✅"]
         end
-    end
     
     P1 ~~~ P2
     P2 ~~~ P3
