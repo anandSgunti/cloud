@@ -4,10 +4,6 @@
 1. Transfer Bridge strips EXIF metadata → ML Model failures
 2. Images with human faces must be deleted within 24 hours (PII compliance)
 
-**Solution**: Integrated pre-processing pipeline with metadata preservation and automated PII deletion  
-**Platform**: Microsoft Azure  
-**Date**: February 27, 2026
-
 ---
 
 ## Executive Summary
