@@ -49,9 +49,6 @@ flowchart TD
     
     Decision -->|YES| Quarantine
     
-    Note1[🔑 UNIFIED SOLUTION:<br/>────────────────<br/>Problem 1 EXIF Loss: Metadata extracted BEFORE Bridge strips it<br/>Problem 2 PII Compliance: Faces detected BEFORE processing<br/>────────────────<br/>Table Storage links both solutions via image_id]
-    
-    TableStorage -.-> Note1
     
     style PreProcess fill:#e1f5ff,stroke:#0066cc,stroke-width:3px
     style TableStorage fill:#fff4e6,stroke:#ff6f00,stroke-width:3px
