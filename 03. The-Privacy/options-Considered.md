@@ -30,6 +30,21 @@
 
 ---
 
+
+## Options Considered (Metadata + Audit)
+
+### Option A — Azure Table Storage (Chosen for MVP)
+- **Why:** Simple, low-ops metadata sidecar for fast **point lookups** by `image_id` (RowKey) and lightweight pipeline state (`status`, `routing_state`, deadlines).
+- **Fit:** Best for the serving path where the ML step needs quick retrieval of EXIF/audit fields during processing.
+
+### Option B — Azure SQL Database (Future-friendly for dashboards)
+- **Why:** Strong fit for **analytics and reporting** (aggregations, joins, time-window queries, per-customer SLA dashboards) and BI tooling.
+- **How we’d use it:** Keep Azure Table (or Cosmos) for the processing/serving path, and **replicate/stream pipeline events** into Azure SQL for dashboards—avoiding added latency or coupling in the critical path.
+- **When to choose it as the primary store:** If requirements expand to heavy querying/reporting on the operational store itself (e.g., frequent complex filters across large time ranges).
+
+### Option C — Cosmos DB (Scale + flexible querying)
+- **Why:** If ingestion volume grows substantially or query patterns become more complex than point lookups, Cosmos can provide better scalability and indexing options than Table.
+- **Tradeoff:** Higher complexity/cost than Table for an MVP.
 ## Selected Solution: Option 1 - Pre-Processing Detection & Routing
 
 ### Justification
