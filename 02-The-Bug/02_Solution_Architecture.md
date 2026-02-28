@@ -200,7 +200,6 @@ sequenceDiagram
 ## Azure Services Used
 ```mermaid
 graph TB
-    subgraph RG["Resource Group: rg-zerocorp-image-pipeline"]
         AF["Azure Functions<br/>(Pre-Processing)<br/><br/> $10-20/month"]
         AT["Azure Tables<br/>(Metadata Store)<br/><br/> $5/month"]
         BS["Azure Blob Storage<br/>(Images)<br/><br/> Existing"]
@@ -239,6 +238,7 @@ graph TB
 ```mermaid
 graph TB
     subgraph Dashboard["ZeroCorp Image Pipeline - Live Status"]
+
         subgraph Processing[" Today's Processing"]
             P1["Images Processed: 1,247"]
             P2["EXIF Extracted: 99.8%"]
