@@ -19,7 +19,6 @@ flowchart TD
     Start[Image Upload<br/>iCloud API]
     
     subgraph PreProcess[PRE-PROCESSING LAYER]
-        ExtractEXIF[Extract EXIF Metadata<br/>GPS, timestamp, camera info]
         FaceDetect[Face Detection<br/>Azure Face API]
         ExtractEXIF --> FaceDetect
     end
