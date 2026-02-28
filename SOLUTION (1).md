@@ -17,28 +17,138 @@ Transfer Bridge transformations (resize/convert/compress) strip EXIF metadata. T
 
 ## 3) Architecture
 
-### Rendered Flow Diagram (embedded)
-![ZeroCorp end-to-end flow](zerocorp_flow.png)
+### End-to-End Process Flow (from `FLOW.md`)
+# ZeroCorp Solution — Complete Flow Diagram
 
-### Mermaid Source (for easy editing)
-```mermaid
-flowchart TD
-    A[Original Image<br/>(with EXIF)] -->|Step 1: Extract EXIF| B[Extracted Metadata<br/>(GPS, timestamp, camera)]
-    B -->|Step 2: Save metadata| T[(Azure Table<br/>imagemetadata)]
+## End-to-End Process Flow
 
-    A -->|Step 3: Face detection on original| F[Azure Face API]
-    F -->|Update has_face + routing_state| T
-    F --> D{Step 4: has_face?}
-
-    D -->|Yes (face) or Unknown| Q[quarantine container<br/>(PII)]
-    D -->|No (approved path only)| BR[Step 5: Transfer Bridge<br/>resize / RGB / compress<br/>(strips EXIF)]
-
-    BR -->|Step 6: ML receives image bytes<br/>(no EXIF)| M[ML Model<br/>query + process]
-    M -->|Query EXIF by image_id| T
-    M -->|Step 7: Upload processed image| AP[approved container<br/>(retain)]
-
-    Q -->|Step 8: Scheduled purge (e.g., hourly)<br/>Delete ALL quarantine blobs| HD[Hard Delete<br/>(quarantine only)]
 ```
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                         ZEROCORP TRANSFER BRIDGE SOLUTION                       │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+  ┌─────────────┐
+  │  Original   │
+  │  Image      │
+  │ (with EXIF) │
+  └──────┬──────┘
+         │
+         │ Step 1: Extract EXIF
+         ▼
+  ┌─────────────┐     Step 2: Save to Table     ┌──────────────────┐
+  │ GPS, time,  │──────────────────────────────▶│  Azure Table     │
+  │ camera info │                               │  imagemetadata   │
+  └──────┬──────┘                               └────────▲─────────┘
+         │                                               │
+         │ Step 3: Face Detection (on original)          │
+         ▼                                               │
+  ┌─────────────┐     Update Table with          │
+  │ Face API    │     has_face, blob_container   │
+  │ (Azure)     │────────────────────────────────┘
+  └──────┬──────┘
+         │ has_face: Yes/No
+         │
+         │ Step 4: Blob Router (immediate)
+         ▼
+  ┌─────────────────┐
+  │  has_face?      │
+  └────────┬────────┘
+           │
+     ┌─────┴─────┐
+     │           │
+  Yes│           │No (approved path only)
+     ▼           │
+  ┌──────────┐   │
+  │quarantine│   │  Only these go to Transfer Bridge
+  │ (PII)    │   │
+  └────┬─────┘   │
+       │         │
+       │         │ Step 5: Transfer Bridge
+       │         ▼
+       │  ┌─────────────────┐
+       │  │ Transfer Bridge │  Resize, convert RGB, compress
+       │  │ (strips EXIF)   │  EXIF LOST (the bug)
+       │  └────────┬────────┘
+       │           │
+       │           │ Step 6: ML Model receives image (no EXIF)
+       │           ▼
+       │  ┌─────────────────┐     Query Table    ┌──────────────────┐
+       │  │   ML Model      │◀───────────────────│  Azure Table     │
+       │  │ query + process │                    └──────────────────┘
+       │  └────────┬────────┘
+       │           │
+       │           │ Step 7: Upload to approved container
+       │           ▼
+       │  ┌──────────┐
+       │  │ approved │
+       │  │ (retain) │
+       │  └──────────┘
+       │
+       │ Step 8: Scheduled purge (e.g. hourly)
+       │ Delete ALL blobs in quarantine
+       ▼
+  ┌──────────────┐
+  │ Hard Delete  │  24-hour PII mandate complied
+  │ (quarantine  │
+  │  blobs only) │
+  └──────────────┘
+```
+
+---
+
+## Step-by-Step Summary
+
+| Step | Module | Action |
+|------|--------|--------|
+| 1 | step1_extract_exif | Extract EXIF (GPS, timestamp, camera) from original image |
+| 2 | step2_save_to_table | Save EXIF metadata to Azure Table |
+| 3 | face_detection | Run Face API on original image; update table with has_face |
+| 4 | blob_router | Route: Face → quarantine; No face → continue to Bridge |
+| 5 | step3_transfer_bridge | Bridge processes image (approved only); EXIF stripped |
+| 6 | step4_ml_model | ML model receives, queries Table, processes (approved only) |
+| 7 | blob_router | Upload processed image to approved container |
+| 8 | Scheduled job | Delete all blobs in quarantine container (hourly) |
+
+---
+
+## Decision: Face Detection (after Step 3)
+
+```
+                    ┌─────────────┐
+                    │ Face API    │
+                    │ detects     │
+                    └──────┬──────┘
+                           │
+                    ┌──────┴──────┐
+                    │             │
+              Face? │             │ No face?
+                    ▼             ▼
+            ┌───────────┐   ┌───────────────────────┐
+            │ quarantine│   │ Transfer Bridge       │
+            │ (PII)     │   │ → ML Model            │
+            │ → DELETE  │   │ → approved container  │
+            └───────────┘   └───────────────────────┘
+```
+
+---
+
+## Data Link: image_id
+
+```
+image_id (filename):
+
+  Face path:    Original ──▶ Table ──▶ quarantine blob ──▶ (deleted)
+  Approved path: Original ──▶ Table ──▶ Bridge ──▶ ML Model query ──▶ approved blob
+```
+
+---
+
+## Compliance
+
+| Requirement | Solution |
+|-------------|----------|
+| **Metadata loss** | EXIF extracted before Bridge; stored in Table; ML model queries Table |
+| **24-hour PII deletion** | Face images → quarantine; scheduled job deletes quarantine blobs (e.g. hourly) |
 
 ## 4) Step-by-Step (mapped to code modules)
 
