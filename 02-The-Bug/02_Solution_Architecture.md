@@ -204,19 +204,15 @@ graph TB
         direction TB
         SPACER1[" "]
         AF["Azure Functions<br/>(Pre-Processing)<br/><br/>💰 $10-20/month"]
-   
         AT["Azure Tables<br/>(Metadata Store)<br/><br/>💰 $5/month"]
-    
         BS["Azure Blob Storage<br/>(Images)<br/><br/>💰 Existing"]
-    
         AI["Application Insights<br/>(Monitoring)<br/><br/>💰 $10-20/month"]
-  
         TOTAL["Total: $25-45/month"]
         
-     
-        AF ~~~  AT
-        AT ~~~  BS
-        BS ~~~  AI
+        SPACER1 ~~~ AF
+        AF ~~~ AT
+        AT ~~~ BS
+        BS ~~~ AI
         AI ~~~ TOTAL
     end
     
@@ -228,10 +224,6 @@ graph TB
     style TOTAL fill:#fff3cd,stroke:#ffc107,stroke-width:2px,color:#000,font-weight:bold
     
     style SPACER1 fill:none,stroke:none,color:transparent
-    style SPACER2 fill:none,stroke:none,color:transparent
-    style SPACER3 fill:none,stroke:none,color:transparent
-    style SPACER4 fill:none,stroke:none,color:transparent
-    style SPACER5 fill:none,stroke:none,color:transparent
 ```
 
 ---
