@@ -200,30 +200,22 @@ sequenceDiagram
 ## Azure Services Used
 ```mermaid
 graph TB
-    subgraph RG["Resource Group: rg-zerocorp-image-pipeline"]
-        direction TB
-        SPACER1[" "]
-        AF["Azure Functions<br/>(Pre-Processing)<br/><br/>💰 $10-20/month"]
-        AT["Azure Tables<br/>(Metadata Store)<br/><br/>💰 $5/month"]
-        BS["Azure Blob Storage<br/>(Images)<br/><br/>💰 Existing"]
-        AI["Application Insights<br/>(Monitoring)<br/><br/>💰 $10-20/month"]
-        TOTAL["Total: $25-45/month"]
-        
-        SPACER1 ~~~ AF
-        AF ~~~ AT
-        AT ~~~ BS
-        BS ~~~ AI
-        AI ~~~ TOTAL
-    end
+    AF["Azure Functions<br/>(Pre-Processing)<br/><br/>💰 $10-20/month"]
+    AT["Azure Tables<br/>(Metadata Store)<br/><br/>💰 $5/month"]
+    BS["Azure Blob Storage<br/>(Images)<br/><br/>💰 Existing"]
+    AI["Application Insights<br/>(Monitoring)<br/><br/>💰 $10-20/month"]
+    TOTAL["Total: $25-45/month"]
     
-    style RG fill:#e6f3ff,stroke:#0078d4,stroke-width:3px,color:#000
+    AF ~~~ AT
+    AT ~~~ BS
+    BS ~~~ AI
+    AI ~~~ TOTAL
+    
     style AF fill:#fff,stroke:#0078d4,stroke-width:2px,color:#000
     style AT fill:#fff,stroke:#0078d4,stroke-width:2px,color:#000
     style BS fill:#d4edda,stroke:#28a745,stroke-width:2px,color:#000
     style AI fill:#fff,stroke:#0078d4,stroke-width:2px,color:#000
     style TOTAL fill:#fff3cd,stroke:#ffc107,stroke-width:2px,color:#000,font-weight:bold
-    
-    style SPACER1 fill:none,stroke:none,color:transparent
 ```
 
 ---
