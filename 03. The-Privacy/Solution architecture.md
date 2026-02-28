@@ -56,7 +56,6 @@ flowchart TD
     style Approved fill:#c8e6c9,stroke:#2e7d32,stroke-width:3px
     style ML fill:#f3e5f5,stroke:#9c27b0,stroke-width:2px
     style Quarantine fill:#ffcdd2,stroke:#c62828,stroke-width:3px
-    style Note1 fill:#fffde7,stroke:#f57f17,stroke-width:2px,stroke-dasharray: 5 5
 ```
 
 ---
