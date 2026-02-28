@@ -5,6 +5,20 @@
 
 ---
 
+## The Scenario
+
+ZeroCorp's CEO has invested **$50,000** in a proprietary **Transfer Bridge** to move images from employee iCloud accounts to CloudFactory.
+
+### The Crisis
+
+| Issue | Description |
+|-------|-------------|
+| **The Bug** | The Bridge strips EXIF metadata (GPS, timestamps), which is required for the ML model to function. |
+| **The Privacy Rule** | All images with human faces must be **Hard Deleted within 24 hours**. |
+| **The Players** | The Transfer Bridge was built by the CEO's "Star Developer." The CEO is non-technical and has a close relationship with the developer. She wants no delays or dips in quality. |
+
+---
+
 ## Solution Overview
 
 ### Approach: Pre-Processing Layer (Non-Invasive)
@@ -20,6 +34,16 @@ Instead of changing the Transfer Bridge:
 - EXIF is preserved in a metadata store and available to the ML model.
 - Face images are deleted within about **1 hour** (well within the 24-hour requirement).
 - Full audit trail for compliance.
+
+---
+
+## Suggested Sequence
+
+1. **Understand the problem** → `01-root-cause-analysis/RCA.md`
+2. **Review solution options** → `02-The-Bug/01_Solutions_Options.md`, `03. The-Privacy/options-Considered.md`
+3. **See the full architecture** → `Unified-Solution.md`
+4. **Run end-to-end** → `working solution.md`
+5. **CEO escalation (Part 2)** → `Email.md`
 
 ---
 
@@ -40,6 +64,7 @@ Use `working solution.md` when you want to run the pipeline yourself or verify t
 ```
 cloud-11/
 ├── README.md                          # This file
+├── Email.md                           # CEO escalation (Part 2) – model quality & delays
 ├── Unified-Solution.md                # Full unified architecture (both problems)
 ├── working solution.md                # End-to-end execution guide (setup, run, validate)
 ├── API Integration.md                 # API integration notes
@@ -86,6 +111,7 @@ cloud-11/
 | Topic | Document |
 |-------|----------|
 | **How to run end-to-end (working guide)** | **`working solution.md`** |
+| **CEO escalation – model quality & delays (Part 2)** | **`Email.md`** |
 | Why EXIF is lost | `01-root-cause-analysis/RCA.md` |
 | EXIF solution options | `02-The-Bug/01_Solutions_Options.md` |
 | EXIF solution design | `02-The-Bug/02_Solution_Architecture.md` |
@@ -105,6 +131,5 @@ cloud-11/
 The pipeline demonstrates: EXIF extraction → Table storage → Face detection → Blob routing (quarantine vs approved) → Bridge processing (no-face only) → ML model using Table-backed metadata.
 
 ---
-
 
 *This repository was created as part of the CloudFactory AI Platform Implementation Engineer assessment.*
