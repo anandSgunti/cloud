@@ -23,6 +23,19 @@ Unified pre-processing layer that solves both critical issues without modifying 
 
 ---
 
+## Goals and Non‑Goals
+
+### Goals
+- Preserve EXIF-derived fields (GPS, timestamp, camera info) for downstream ML even when EXIF is stripped in the image pipeline.
+- Guarantee that any image containing a human face (PII) is **hard deleted within 24 hours**.
+- Keep the design operable: retry-safe, observable, and easy to troubleshoot during early customer activation.
+
+### Non‑Goals
+- Changing or re-architecting Transfer Bridge internals.
+- Performing facial recognition/identity; only face presence detection is required.
+
+
+
 ## Unified Architecture
 ```mermaid
 flowchart TD
