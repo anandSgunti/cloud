@@ -14,17 +14,35 @@ Automated face detection system that routes PII images to quarantine and deletes
 ---
 
 ## Architecture
-```
-Image Upload
-    ↓
-Face Detection (Azure Face API)
-    ↓
-┌─────────────┴─────────────┐
-│                           │
-NO FACE                 FACE DETECTED
-│                           │
-→ Approved Container    → Quarantine Container
-  (Permanent)              (Hourly purge)
+```mermaid
+flowchart TD
+    Start[Image Upload<br/>iCloud API]
+    FaceDetect[Face Detection<br/>Azure Face API]
+    Decision{Face<br/>Detected?}
+    
+    subgraph NoFace[NO FACE PATH]
+        Bridge[Transfer Bridge<br/>• Resize<br/>• Compress<br/>• Strip EXIF]
+        Approved[(Approved Container<br/>📦 Permanent Storage)]
+    end
+    
+    subgraph FacePath[FACE DETECTED PATH]
+        Quarantine[(⚠️ Quarantine Container<br/>⏰ Hourly Purge)]
+    end
+    
+    Start --> FaceDetect
+    FaceDetect --> Decision
+    
+    Decision -->|NO| Bridge
+    Bridge --> Approved
+    
+    Decision -->|YES| Quarantine
+    
+    style Start fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
+    style FaceDetect fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    style Decision fill:#fce4ec,stroke:#c2185b,stroke-width:2px
+    style Bridge fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
+    style Approved fill:#c8e6c9,stroke:#2e7d32,stroke-width:3px
+    style Quarantine fill:#ffcdd2,stroke:#c62828,stroke-width:3px
 ```
 
 ---
