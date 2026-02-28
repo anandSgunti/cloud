@@ -102,41 +102,94 @@ flowchart TD
 ## Complete Workflow
 
 ### Phase 1: Ingestion & Pre-Processing
-```
-1. INGEST ORIGINAL IMAGE
-   └─ Download from iCloud (with EXIF)
-
-2. EXTRACT EXIF → STORE IN TABLE
-   ├─ Extract: GPS, timestamp, camera
-   └─ Store in Table Storage with image_id as key
-       Problem 1 solved: Metadata preserved ✅
-
-3. DETECT FACES → UPDATE TABLE
-   ├─ Call Azure Face API
-   ├─ Result: has_human_face TRUE/FALSE
-   └─ Update Table Storage entry:
-       • face_detection_timestamp ⏰
-       • pii_delete_deadline (+24h)
-       • pii_deleted_at: NULL
+```mermaid
+flowchart TD
+    Start([User uploads image]) --> Download[1. INGEST ORIGINAL IMAGE<br/>Download from iCloud with EXIF]
+    
+    Download --> Extract[2. EXTRACT EXIF → STORE IN TABLE]
+    
+    Extract --> ExtractDetails[Extract metadata:<br/>• GPS coordinates<br/>• Timestamp<br/>• Camera model]
+    
+    ExtractDetails --> StoreTable[(Azure Table Storage)]
+    StoreTable --> TableEntry[Store with image_id as partition key:<br/>• gps_lat, gps_lon<br/>• timestamp<br/>• camera_model<br/>• original_filename]
+    
+    TableEntry --> Problem1[✓ Problem 1 Solved:<br/>Metadata preserved separately]
+    
+    Problem1 --> FaceDetect[3. DETECT FACES → UPDATE TABLE]
+    
+    FaceDetect --> AzureFace[Call Azure Face API<br/>Detect human faces]
+    
+    AzureFace --> HasFace{has_human_face?}
+    
+    HasFace -->|TRUE| UpdateTrue[Update Table Storage:<br/>• has_human_face: TRUE<br/>• face_detection_timestamp: NOW<br/>• pii_delete_deadline: NOW + 24h<br/>• pii_deleted_at: NULL]
+    
+    HasFace -->|FALSE| UpdateFalse[Update Table Storage:<br/>• has_human_face: FALSE<br/>• face_detection_timestamp: NOW<br/>• pii_delete_deadline: NULL<br/>• pii_deleted_at: NULL]
+    
+    UpdateTrue --> NextStep[Ready for next processing step]
+    UpdateFalse --> NextStep
+    
+    style Problem1 fill:#90EE90
+    style StoreTable fill:#4A90E2,color:#fff
+    style AzureFace fill:#0078D4,color:#fff
+    style UpdateTrue fill:#FFE4B5
+    style UpdateFalse fill:#E0E0E0
 ```
 
 ---
 
 ### Phase 2: Routing
-```
-4. ROUTING DECISION
-
-   IF NO FACE:
-   ├─ Pass original image to Transfer Bridge
-   └─ Continue to Phase 3 ↓
-
-   IF FACE DETECTED:
-   ├─ Upload ORIGINAL to quarantine
-   ├─ Update Table: blob_container = 'quarantine'
-   ├─ Bridge SKIPPED (no processing)
-   ├─ ML Model BLOCKED
-   └─ ⏰ Scheduled for deletion (jump to Phase 5)
-       Problem 2 solved: PII isolated ✅
+```mermaid
+flowchart TD
+    Start([User uploads image]) --> Download[1. INGEST ORIGINAL IMAGE<br/>Download from iCloud with EXIF]
+    
+    Download --> Extract[2. EXTRACT EXIF → STORE IN TABLE]
+    
+    Extract --> ExtractDetails[Extract metadata:<br/>• GPS coordinates<br/>• Timestamp<br/>• Camera model]
+    
+    ExtractDetails --> StoreTable[(Azure Table Storage)]
+    StoreTable --> TableEntry[Store with image_id as partition key:<br/>• gps_lat, gps_lon<br/>• timestamp<br/>• camera_model<br/>• original_filename]
+    
+    TableEntry --> Problem1[✓ Problem 1 Solved:<br/>Metadata preserved separately]
+    
+    Problem1 --> FaceDetect[3. DETECT FACES → UPDATE TABLE]
+    
+    FaceDetect --> AzureFace[Call Azure Face API<br/>Detect human faces]
+    
+    AzureFace --> HasFace{has_human_face?}
+    
+    HasFace -->|TRUE| UpdateTrue[Update Table Storage:<br/>• has_human_face: TRUE<br/>• face_detection_timestamp: NOW<br/>• pii_delete_deadline: NOW + 24h<br/>• pii_deleted_at: NULL]
+    
+    HasFace -->|FALSE| UpdateFalse[Update Table Storage:<br/>• has_human_face: FALSE<br/>• face_detection_timestamp: NOW<br/>• pii_delete_deadline: NULL<br/>• pii_deleted_at: NULL]
+    
+    UpdateTrue --> Route
+    UpdateFalse --> Route[4. ROUTING DECISION]
+    
+    Route --> RouteFace{Face detected?}
+    
+    RouteFace -->|NO FACE| NoFacePath[Clean path:<br/>Pass ORIGINAL to Transfer Bridge]
+    NoFacePath --> Phase3[Continue to Phase 3:<br/>ML Processing ↓]
+    
+    RouteFace -->|FACE DETECTED| QuarantinePath[PII protection path:]
+    QuarantinePath --> UploadQuarantine[Upload ORIGINAL to<br/>quarantine container]
+    UploadQuarantine --> UpdateContainer[Update Table Storage:<br/>• blob_container: 'quarantine'<br/>• blob_url: quarantine URL]
+    UpdateContainer --> BridgeSkipped[ Transfer Bridge SKIPPED<br/>no processing]
+    BridgeSkipped --> MLBlocked[ ML Model BLOCKED<br/>never sees PII]
+    MLBlocked --> ScheduleDeletion[ Scheduled for deletion<br/>Jump to Phase 5 cleanup]
+    
+    ScheduleDeletion --> Problem2[✓ Problem 2 Solved:<br/>PII isolated & protected ]
+    
+    style Problem1 fill:#90EE90
+    style Problem2 fill:#90EE90
+    style StoreTable fill:#4A90E2,color:#fff
+    style AzureFace fill:#0078D4,color:#fff
+    style UpdateTrue fill:#FFE4B5
+    style UpdateFalse fill:#E0E0E0
+    style QuarantinePath fill:#FFB6C6
+    style BridgeSkipped fill:#FF6B6B,color:#fff
+    style MLBlocked fill:#FF6B6B,color:#fff
+    style ScheduleDeletion fill:#FFA500,color:#fff
+    style NoFacePath fill:#B0E0B0
+    style Phase3 fill:#4A90E2,color:#fff
 ```
 
 ---
