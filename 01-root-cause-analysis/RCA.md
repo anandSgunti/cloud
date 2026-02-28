@@ -49,9 +49,9 @@ def validate_exif_checkpoint(image_path, checkpoint_name):
         timestamp = exif.get(36867) if exif else None  # DateTimeOriginal
         
         print(f"\n[{checkpoint_name}]")
-        print(f"  EXIF Present: {'✅ YES' if has_exif else '❌ NO'}")
-        print(f"  GPS Data: {'✅ Present' if gps_data else '❌ Missing'}")
-        print(f"  Timestamp: {'✅ Present' if timestamp else '❌ Missing'}")
+        print(f"  EXIF Present: {' YES' if has_exif else ' NO'}")
+        print(f"  GPS Data: {'Present' if gps_data else ' Missing'}")
+        print(f"  Timestamp: {' Present' if timestamp else ' Missing'}")
         print(f"  Total Tags: {len(exif) if exif else 0}")
         
         return has_exif
@@ -107,37 +107,37 @@ def transfer_image_with_checkpoints(photo_id):
 ### Expected Checkpoint Output
 ```
 [CHECKPOINT 1: Post-iCloud Download]
-  EXIF Present: ✅ YES
-  GPS Data: ✅ Present (37.7749, -122.4194)
-  Timestamp: ✅ Present (2026:02:20 14:23:45)
+  EXIF Present:  YES
+  GPS Data: Present (37.7749, -122.4194)
+  Timestamp:  Present (2026:02:20 14:23:45)
   Total Tags: 47
 
 [CHECKPOINT 2: After Image.open()]
-  EXIF Present: ✅ YES
-  GPS Data: ✅ Present
-  Timestamp: ✅ Present
+  EXIF Present:  YES
+  GPS Data:  Present
+  Timestamp:  Present
   Total Tags: 47
 
 [CHECKPOINT 3: After Resize]
-  EXIF Present: ❌ NO  ⚠️ METADATA LOST
-  GPS Data: ❌ Missing
-  Timestamp: ❌ Missing
+  EXIF Present:  NO   METADATA LOST
+  GPS Data:  Missing
+  Timestamp:  Missing
   Total Tags: 0
 
 [CHECKPOINT 4: After Convert to RGB]
-  EXIF Present: ❌ NO
-  GPS Data: ❌ Missing
-  Timestamp: ❌ Missing
+  EXIF Present:  NO
+  GPS Data:  Missing
+  Timestamp:  Missing
   Total Tags: 0
 
 [CHECKPOINT 5: Final Output]
-  EXIF Present: ❌ NO
-  GPS Data: ❌ Missing
-  Timestamp: ❌ Missing
+  EXIF Present:  NO
+  GPS Data:  Missing
+  Timestamp:  Missing
   Total Tags: 0
 ```
 
-**🎯 Result**: EXIF metadata lost at **CHECKPOINT 3 (Resize operation)**
+** Result**: EXIF metadata lost at **CHECKPOINT 3 (Resize operation)**
 
 ---
 
@@ -146,28 +146,28 @@ def transfer_image_with_checkpoints(photo_id):
 flowchart TD
     Start([Start: Image in iCloud]) --> CP1{CHECKPOINT 1:<br/>Download from iCloud}
     
-    CP1 -->|Validate EXIF| V1[✅ EXIF Present<br/>GPS: 37.7749, -122.4194<br/>Timestamp: 2026-02-20 14:23:45]
+    CP1 -->|Validate EXIF| V1[ EXIF Present<br/>GPS: 37.7749, -122.4194<br/>Timestamp: 2026-02-20 14:23:45]
     V1 --> CP2{CHECKPOINT 2:<br/>Image.open}
     
-    CP2 -->|Validate EXIF| V2[✅ EXIF Still Present<br/>No transformation yet]
+    CP2 -->|Validate EXIF| V2[ EXIF Still Present<br/>No transformation yet]
     V2 --> CP3{CHECKPOINT 3:<br/>Resize Operation}
     
     CP3 -->|img.resize| Transform1[img.resize creates<br/>NEW image object]
-    Transform1 -->|Validate EXIF| V3[❌ EXIF LOST<br/>New object has no metadata]
+    Transform1 -->|Validate EXIF| V3[ EXIF LOST<br/>New object has no metadata]
     
-    V3 -->|ROOT CAUSE<br/>IDENTIFIED| RC[🎯 Pillow resize<br/>doesn't copy EXIF<br/>to new object]
+    V3 -->|ROOT CAUSE<br/>IDENTIFIED| RC[ Pillow resize<br/>doesn't copy EXIF<br/>to new object]
     
     RC --> CP4{CHECKPOINT 4:<br/>Convert to RGB}
-    CP4 -->|img.convert| V4[❌ EXIF Still Missing<br/>Conversion won't restore it]
+    CP4 -->|img.convert| V4[ EXIF Still Missing<br/>Conversion won't restore it]
     
     V4 --> CP5{CHECKPOINT 5:<br/>Save with Compression}
-    CP5 -->|img.save without<br/>exif parameter| V5[❌ EXIF Still Missing<br/>Save doesn't preserve by default]
+    CP5 -->|img.save without<br/>exif parameter| V5[ EXIF Still Missing<br/>Save doesn't preserve by default]
     
     V5 --> Upload[Upload to CloudFactory]
     Upload --> CF[CloudFactory Receives<br/>Image WITHOUT EXIF]
     
     CF --> Model{ML Model<br/>Checks Metadata}
-    Model -->|GPS = NULL<br/>Timestamp = NULL| Error[❌ ERROR:<br/>Required metadata missing<br/>Cannot process image]
+    Model -->|GPS = NULL<br/>Timestamp = NULL| Error[ ERROR:<br/>Required metadata missing<br/>Cannot process image]
     
     Error --> Impact[Impact:<br/>70% of images fail<br/>Manual intervention required<br/>3-week project delay]
     
@@ -183,51 +183,51 @@ flowchart TD
 ```
 ┌─────────────────┐
 │   iCloud        │
-│   (Source)      │  EXIF: ✅ Present
-└────────┬────────┘  GPS: ✅ 37.7749, -122.4194
-         │            Timestamp: ✅ 2026-02-20 14:23:45
+│   (Source)      │  EXIF:  Present
+└────────┬────────┘  GPS:  37.7749, -122.4194
+         │            Timestamp:  2026-02-20 14:23:45
          ▼
 ┌─────────────────┐
-│   Download      │  EXIF: ✅ Still Present
+│   Download      │  EXIF:  Still Present
 │   (iCloud API)  │  (API preserves metadata)
 └────────┬────────┘
          │
          ▼
 ┌─────────────────┐
-│  Image.open()   │  EXIF: ✅ Still Present
+│  Image.open()   │  EXIF:  Still Present
 │  (Pillow)       │  (Loaded into memory)
 └────────┬────────┘
          │
          ▼
 ┌─────────────────────────────────────┐
 │  img.resize(1920, 1080)             │
-│  ⚠️  EXIF LOST HERE                 │  EXIF: ❌ LOST
-│                                     │  GPS: ❌ Missing
-│  Why: Creates new Image object     │  Timestamp: ❌ Missing
+│    EXIF LOST HERE                 │  EXIF:  LOST
+│                                     │  GPS:  Missing
+│  Why: Creates new Image object     │  Timestamp:  Missing
 │       without copying EXIF          │
 └────────┬────────────────────────────┘
          │
          ▼
 ┌─────────────────┐
-│  img.convert()  │  EXIF: ❌ Still Missing
+│  img.convert()  │  EXIF:  Still Missing
 │  (to RGB)       │  (Can't restore what's gone)
 └────────┬────────┘
          │
          ▼
 ┌─────────────────┐
-│  img.save()     │  EXIF: ❌ Still Missing
+│  img.save()     │  EXIF:  Still Missing
 │  (compress)     │  (No exif= parameter)
 └────────┬────────┘
          │
          ▼
 ┌─────────────────┐
-│  Upload to      │  EXIF: ❌ Missing
+│  Upload to      │  EXIF:  Missing
 │  CloudFactory   │
 └────────┬────────┘
          │
          ▼
 ┌─────────────────┐
-│  ML Model       │  ❌ ERROR: Required metadata missing
+│  ML Model       │   ERROR: Required metadata missing
 │  Processing     │  Cannot execute without GPS/Timestamp
 └─────────────────┘
 ```
@@ -236,7 +236,7 @@ flowchart TD
 
 ## Step-by-Step Analysis
 
-### ✅ **Step 1: Source (iCloud)**
+### **Step 1: Source (iCloud)**
 **Check**: Does the original image have EXIF data?
 ```bash
 exiftool employee_photo.jpg
@@ -250,11 +250,11 @@ Date/Time       : 2026:02:20 14:23:45
 Camera Model    : iPhone 13 Pro
 ```
 
-**Status**: ✅ EXIF present at source
+**Status**:  EXIF present at source
 
 ---
 
-### ✅ **Step 2: Download from iCloud (Bridge Server)**
+###  **Step 2: Download from iCloud (Bridge Server)**
 **Check**: Does iCloud API preserve EXIF during download?
 
 **Most Likely**: YES - iCloud APIs preserve metadata in downloaded files
@@ -264,14 +264,14 @@ Camera Model    : iPhone 13 Pro
 img = Image.open('temp/downloaded_image.jpg')
 exif_data = img._getexif()
 print(f"EXIF present: {exif_data is not None}")
-# Output: True ✅
+# Output: True 
 ```
 
-**Status**: ✅ EXIF preserved through download
+**Status**:  EXIF preserved through download
 
 ---
 
-### ❌ **Step 3: Image Processing (Bridge Server) - FAILURE POINT**
+###  **Step 3: Image Processing (Bridge Server) - FAILURE POINT**
 
 **What the Bridge Does**:
 1. **Image Resizing** (reduce upload size)
@@ -297,7 +297,7 @@ def process_image(input_path, output_path):
     img.save(output_path, 'JPEG', quality=85, optimize=True)
 ```
 
-**🎯 ROOT CAUSE: This code strips EXIF metadata**
+** ROOT CAUSE: This code strips EXIF metadata**
 
 **Why?**
 - `Image.resize()` creates a NEW image object without EXIF
@@ -312,14 +312,14 @@ img_resized.save('temp_resized.jpg')
 
 img_check = Image.open('temp_resized.jpg')
 print(f"EXIF after resize: {img_check._getexif() is not None}")
-# Output: False ❌
+# Output: False 
 ```
 
-**Status**: ❌ **EXIF LOST at resize/convert/save operations**
+**Status**:  **EXIF LOST at resize/convert/save operations**
 
 ---
 
-### ❌ **Step 4: Upload to CloudFactory**
+###  **Step 4: Upload to CloudFactory**
 **Check**: Does the uploaded image have EXIF?
 
 **Result**: NO - EXIF was already stripped in Step 3
@@ -332,7 +332,7 @@ print(f"EXIF after resize: {img_check._getexif() is not None}")
 
 ## Root Cause Identified
 
-### 🎯 **Primary Cause**
+###  **Primary Cause**
 
 **Where**: Image processing step on Transfer Bridge server  
 **What**: Image transformation operations (resize, convert, save)  
@@ -342,9 +342,9 @@ print(f"EXIF after resize: {img_check._getexif() is not None}")
 ```python
 # THIS CODE STRIPS EXIF:
 img = Image.open(input_path)
-img = img.resize((1920, 1080))           # ❌ Creates new object, no EXIF
-img = img.convert('RGB')                 # ❌ Creates new object, no EXIF  
-img.save(output_path, 'JPEG', quality=85) # ❌ Doesn't preserve EXIF
+img = img.resize((1920, 1080))           #  Creates new object, no EXIF
+img = img.convert('RGB')                 #  Creates new object, no EXIF  
+img.save(output_path, 'JPEG', quality=85) #  Doesn't preserve EXIF
 ```
 
 **What's Missing**:
@@ -358,14 +358,14 @@ img = img.resize((1920, 1080))
 img = img.convert('RGB')
 
 # Save WITH exif parameter
-img.save(output_path, 'JPEG', quality=85, exif=exif)  # ✅ Preserves EXIF
+img.save(output_path, 'JPEG', quality=85, exif=exif)  #  Preserves EXIF
 ```
 
 ---
 
 ## Most Likely Scenarios (Ranked)
 
-### 1. 🥇 **Image Processing Library (Pillow) - 80% Probability**
+### 1.  **Image Processing Library (Pillow) - 80% Probability**
 
 **Why Most Likely**:
 - Pillow is the most common Python imaging library
@@ -374,14 +374,14 @@ img.save(output_path, 'JPEG', quality=85, exif=exif)  # ✅ Preserves EXIF
 - Processing operations (resize, convert) create new objects without metadata
 
 **Evidence Pattern**:
-- Images transferred successfully ✅
-- File size reduced (indicates processing occurred) ✅
-- Visual quality intact ✅
-- Metadata missing ❌
+- Images transferred successfully 
+- File size reduced (indicates processing occurred) 
+- Visual quality intact 
+- Metadata missing 
 
 ---
 
-### 2. 🥈 **Image Conversion/Optimization Tool - 15% Probability**
+### 2.  **Image Conversion/Optimization Tool - 15% Probability**
 
 **Alternative**: Bridge might use external CLI tools
 ```bash
@@ -397,7 +397,7 @@ convert input.jpg -resize 1920x1080 -quality 85 output.jpg
 
 ---
 
-### 3. 🥉 **API Upload Library - 5% Probability**
+### 3.  **API Upload Library - 5% Probability**
 
 **Less Likely**: Upload SDK strips metadata
 
@@ -465,7 +465,7 @@ exif_after = img_after._getexif()
 
 # Compare
 print(f"EXIF before: {exif_before is not None}")  # True
-print(f"EXIF after: {exif_after is not None}")    # False ❌
+print(f"EXIF after: {exif_after is not None}")    # False 
 ```
 
 ### 2. Command-Line Verification
@@ -493,6 +493,3 @@ See `02-solution-proposal/` for:
 
 ---
 
-**Status**: ✅ Root Cause Identified  
-**Confidence**: High (80%+ this is Pillow's default behavior)  
-**Action Required**: Solution design and implementation
