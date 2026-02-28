@@ -34,7 +34,7 @@ Each option was evaluated using the following criteria:
 
 # Solution Options Comparison
 
-| Category | Option 1: Modify Bridge | Option 2: Metadata Store (DB) ⭐ | Option 3: JSON Sidecar | Option 4: Blob Metadata |
+| Category | Option 1: Modify Bridge | Option 2: Metadata Store (DB) * | Option 3: JSON Sidecar | Option 4: Blob Metadata |
 |------------|--------------------------|----------------------------------|------------------------|--------------------------|
 | **Approach** | Modify Bridge code to preserve EXIF | Extract EXIF before Bridge and store in database | Store EXIF in `.json` file alongside image | Store EXIF as blob key-value tags |
 | **Bridge Changes Required** | Yes | No | No | No |
