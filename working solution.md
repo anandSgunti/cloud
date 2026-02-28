@@ -32,7 +32,7 @@ The solution ensures:
 Purpose: Logical container for all resources
 
 Configuration:
-- Resource Group Name: zerocorp-image-pipeline
+- Resource Group Name: cloud
 - Region: UK South
 
 Expected Result:
@@ -147,7 +147,7 @@ Flow:
 📊 Diagram:
 (Insert architecture diagram screenshot here)
 
-![Screenshot 6 – Face API Overview](/zerocorp_flow.png)
+![Screenshot 6 – Face API Overview](/Screenshots/zerocorp_flow.png)
 
 ---
 
@@ -205,7 +205,7 @@ python main.py
 ![image.png](/Screenshots/pic9.jpg)
 
 
-**Face Detection and Metadata Insertion  after Tranfer Bridge**
+**Face Detection and Metadata Insertion  after Transfer Bridge**
 
 <br>
 
