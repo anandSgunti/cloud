@@ -144,9 +144,6 @@ Flow:
 6. Scheduled job deletes quarantine images < 24 hours
 7. Lifecycle rule deletes > 48h (failsafe)
 
-📊 Diagram:
-(Insert architecture diagram screenshot here)
-
 ![Screenshot 6 – Face API Overview](/Screenshots/zerocorp_flow.png)
 
 ---
