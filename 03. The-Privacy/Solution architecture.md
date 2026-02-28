@@ -43,7 +43,7 @@ flowchart TD
     Decision -->|NO| Bridge
     Bridge --> Approved
     Approved --> ML
-    ML -.Query EXIF metadata.-> TableStorage
+    ML -.Query EXIF metadata (Part of Solution-01).-> TableStorage
     
     Decision -->|YES| Quarantine
     
