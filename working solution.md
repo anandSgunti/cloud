@@ -242,7 +242,7 @@ python main.py
 - Confirm no `pii_delete_deadline` (no deletion scheduled)
 
 ![image.png](/Screenshots/pic11.jpg)
-![image.png](/Screenshots/approved..jpg)
+![image.png](/Screenshots/approved.jpg)
 
 ## 6.3 Table Storage Record Example
 
