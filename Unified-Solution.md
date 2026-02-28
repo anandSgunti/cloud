@@ -24,88 +24,49 @@ Unified pre-processing layer that solves both critical issues without modifying 
 ---
 
 ## Unified Architecture
-```
-┌─────────────┐
-│   iCloud    │
-│   Source    │
-└──────┬──────┘
-       │
-       │ Original image (with EXIF, possibly with faces)
-       ▼
-╔══════════════════════════════════════════════════════════╗
-║   PRE-PROCESSING LAYER (NEW)                             ║
-║                                                          ║
-║   Step 1: Extract EXIF Metadata                          ║
-║   ├─ GPS coordinates, timestamp, camera info             ║
-║   └─ Store in Azure Table Storage                        ║
-║                                                          ║
-║   Step 2: Face Detection (Azure Face API)                ║
-║   ├─ Detect human faces                                  ║
-║   └─ Update Table Storage with result                    ║
-║       • has_human_face: TRUE/FALSE                       ║
-║       • face_detection_timestamp ⏰                       ║
-║       • pii_delete_deadline (+24h)                       ║
-╚══════════════════════════════════════════════════════════╝
-       │
-       ▼
-┌──────────────────────────────────────────────────────────┐
-│   AZURE TABLE STORAGE (NEW)                              │
-│   Unified Metadata Store                                 │
-│                                                          │
-│   • EXIF: GPS, timestamp, camera (Problem 1 solved)      │
-│   • Face: detection status, deadline (Problem 2 tracked) │
-│   • Audit: timestamps, compliance status                 │
-└──────────────────┬───────────────────────────────────────┘
-                   │
-                   │ Routing Decision
-                   ▼
-          ┌────────────────┐
-          │  has_face?     │
-          └────────┬───────┘
-                   │
-        ┌──────────┴──────────┐
-        │                     │
-        ▼ NO FACE             ▼ FACE DETECTED
-┌────────────────────┐  ┌────────────────────┐
-│ Transfer Bridge    │  │ ⚠️  QUARANTINE     │
-│ (UNCHANGED)        │  │    Container       │
-│                    │  │                    │
-│ • Resize, compress │  │ • Original image   │
-│ • Strips EXIF      │  │ • Unprocessed      │
-│   (don't care!)    │  │ • Hourly purge     │
-└────────┬───────────┘  │                    │
-         │              │ ⛔ Bridge SKIPPED  │
-         ▼              │ ⛔ ML BLOCKED      │
-┌────────────────────┐  └────────┬───────────┘
-│ APPROVED           │           │
-│ Container          │           │ ⏰ Every Hour
-│                    │           │
-│ • Processed images │           ▼
-│ • No EXIF in file  │  ┌────────────────────┐
-└────────┬───────────┘  │ DELETION SCHEDULER │
-         │              │                    │
-         │              │ • Delete ALL       │
-         │              │   quarantine blobs │
-         │              │ • Update Table     │
-         │              │   Storage audit    │
-         │              └────────────────────┘
-         ▼
-┌────────────────────────────────────────────┐
-│ ML MODEL                                   │
-│                                            │
-│ 1. Download processed image from approved  │
-│    (No EXIF in file - stripped by Bridge)  │
-│                                            │
-│ 2. Query Azure Table Storage by image_id   │
-│    ├─ Retrieve GPS coordinates             │
-│    ├─ Retrieve timestamp                   │
-│    └─ Retrieve camera info                 │
-│                                            │
-│ 3. Combine: Processed Image + EXIF metadata│
-│                                            │
-│ 4. Process with complete data ✅           │
-│                                            │
-└────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    iCloud[iCloud Source<br/>Original image with EXIF & faces]
+    
+    subgraph PreProcessing[PRE-PROCESSING LAYER]
+        EXIF[Step 1: Extract EXIF Metadata<br/>GPS, timestamp, camera info]
+        Face[Step 2: Face Detection<br/>Azure Face API]
+        EXIF --> Face
+    end
+    
+    TableStorage[(Azure Table Storage<br/>Unified Metadata Store<br/>────────────────<br/>• EXIF: GPS, timestamp, camera<br/>• Face: detection status, deadline<br/>• Audit: timestamps, compliance)]
+    
+    Decision{has_face?}
+    
+    subgraph NoFacePath[NO FACE PATH]
+        Bridge[Transfer Bridge<br/>────────────<br/>• Resize, compress<br/>• Strips EXIF]
+        Approved[(APPROVED Container<br/>────────────<br/>• Processed images<br/>• No EXIF in file)]
+    end
+    
+    subgraph FacePath[FACE DETECTED PATH]
+        Quarantine[(⚠️ QUARANTINE Container<br/>────────────<br/>• Original image<br/>• Unprocessed<br/>⛔ Bridge SKIPPED<br/>⛔ ML BLOCKED)]
+        Scheduler[DELETION SCHEDULER<br/>⏰ Every Hour<br/>────────────<br/>• Delete ALL quarantine blobs<br/>• Update Table Storage audit]
+    end
+    
+    ML[ML MODEL<br/>────────────<br/>1. Download processed image from approved<br/>2. Query Azure Table Storage by image_id<br/>3. Retrieve GPS, timestamp, camera info<br/>4. Combine: Processed Image + EXIF metadata<br/>5. Process with complete data ✅]
+    
+    iCloud --> PreProcessing
+    PreProcessing --> TableStorage
+    TableStorage --> Decision
+    
+    Decision -->|NO| Bridge
+    Bridge --> Approved
+    Approved --> ML
+    ML -.Query metadata.-> TableStorage
+    
+    Decision -->|YES| Quarantine
+    Quarantine -.Hourly purge.-> Scheduler
+    
+    style PreProcessing fill:#e1f5ff,stroke:#0066cc,stroke-width:3px
+    style TableStorage fill:#fff4e6,stroke:#ff9800,stroke-width:2px
+    style Quarantine fill:#ffe6e6,stroke:#d32f2f,stroke-width:2px
+    style Approved fill:#e8f5e9,stroke:#4caf50,stroke-width:2px
+    style ML fill:#f3e5f5,stroke:#9c27b0,stroke-width:2px
 ```
 
 ---
