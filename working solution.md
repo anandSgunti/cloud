@@ -131,24 +131,8 @@ Face API deployed successfully.
 
 ![Screenshot 6 – Face API Overview](/Screenshots/Picture6.png)
 
----
 
-# 4. Architecture Overview
-
-Flow:
-1. Image uploaded
-2. Face detection via Azure Face API
-3. If face detected → Quarantine container
-4. If no face → Approved container
-5. Metadata stored in Table Storage
-6. Scheduled job deletes quarantine images < 24 hours
-7. Lifecycle rule deletes > 48h (failsafe)
-
-![Screenshot 6 – Face API Overview](/Screenshots/zerocorp_flow.png)
-
----
-
-# 5. Compliance Controls Implemented
+# 4. Compliance Controls Implemented
 
 ## PII Enforcement
 - No face images enter production pipeline
@@ -163,13 +147,13 @@ Flow:
 
 ---
 
-# 6. Application Execution & Output Demonstration
+# 5. Application Execution & Output Demonstration
 
 This section demonstrates the live backend execution and observable outputs of the ZeroCorp image pipeline.
 
 ---
 
-## 6.1 Backend Execution
+## 5.1 Backend Execution
 
 The Python backend performs the following steps:
 
@@ -215,7 +199,7 @@ python main.py
 
 ---
 
-## 6.2 Portal Validation (Visual Proof)
+## 5.2 Portal Validation (Visual Proof)
 
 ### Case 1: Face Image
 
@@ -241,7 +225,7 @@ python main.py
 ![image.png](/Screenshots/pic11.jpg)
 ![image.png](/Screenshots/approved.jpg)
 
-## 6.3 Table Storage Record Example
+## 5.3 Table Storage Record Example
 
 Table: `imagemetadata`\
 PartitionKey: `images` (all entities use same partition)
@@ -279,7 +263,7 @@ PartitionKey: `images` (all entities use same partition)
 
 ---
 
-## 6.4 Deletion Job Demonstration
+## 5.4 Deletion Job Demonstration
 
 Hourly deletion job purges **all blobs** in the quarantine container (quarantine = PII zone; everything there is destined for deletion).
 
@@ -307,7 +291,7 @@ Audit log updated
 
 ---
 
-# 7. Results Achieved
+# 6. Results Achieved
 
 | Requirement                          | Status                             |
 | ------------------------------------ | ---------------------------------- |
@@ -320,7 +304,7 @@ Audit log updated
 
 ---
 
-# 8. Conclusion
+# 7. Conclusion
 
 This demo shows a compliant, production-ready image pipeline that:
 
@@ -331,7 +315,7 @@ This demo shows a compliant, production-ready image pipeline that:
 
 ---
 
-# 9. Appendix
+# Appendix
 
 ### Resources Used
 
