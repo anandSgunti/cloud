@@ -20,7 +20,6 @@ flowchart TD
     
     subgraph PreProcess[PRE-PROCESSING LAYER]
         FaceDetect[Face Detection<br/>Azure Face API]
-        ExtractEXIF --> FaceDetect
     end
     
     TableStorage[(Azure Table Storage<br/>═══════════════<br/>Unified Metadata Store<br/>• EXIF data<br/>• Face detection status<br/>• Audit timestamps)]
