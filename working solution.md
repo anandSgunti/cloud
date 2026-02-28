@@ -41,7 +41,7 @@ Resource group created successfully.
 📸 Screenshot 1: Resource Group Overview
 
 
-Screenshots/Picture1.png
+./Screenshots/Picture1.png
 
 ---
 
@@ -65,7 +65,7 @@ Storage account deployed successfully.
 
 📸 Screenshot 2: Storage Account – Data Protection Settings
 
-![Screenshot 2 – Storage Account Properties](/mnt/data/e87f9ffd-ca8c-4db2-939c-c19457d45159.png)
+![Screenshot 2 – Storage Account Properties](/Screenshots/Picture1.png)
 
 ---
 
