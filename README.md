@@ -48,7 +48,7 @@ Use `working solution.md` when you want to run the pipeline yourself or verify t
 ## Repository Structure
 
 ```
-cloud-11/
+cloud/
 ├── README.md                          # This file
 ├── Email.md                           # CEO escalation (Part 2) – model quality & delays
 ├── Unified-Solution.md                # Full unified architecture (both problems)
