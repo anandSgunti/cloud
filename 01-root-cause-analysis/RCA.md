@@ -385,7 +385,7 @@ Most upload libraries (boto3, Azure SDK, GCS) preserve file bytes as-is.
 
 ---
 
-## Why This Went Undetected
+## Why This Went Undetected : Probabale Causes
 
 ### Testing Gaps
 
@@ -415,17 +415,6 @@ Most upload libraries (boto3, Azure SDK, GCS) preserve file bytes as-is.
 | Model Success Rate | 94% → 28% |
 | Team Morale | Significant impact |
 
----
-
-## Key Learnings
-
-1. **Metadata is Data**: Image "quality" includes invisible metadata, not just pixels
-2. **Library Defaults Matter**: Always verify how libraries handle metadata
-3. **Integration Testing Critical**: Test with actual downstream consumers
-4. **Checkpoint Validation**: Systematic debugging beats assumptions
-5. **Political Awareness**: $50k investment + trusted developer = careful communication
-
----
 
 ## Verification Method
 
