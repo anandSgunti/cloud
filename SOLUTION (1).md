@@ -42,9 +42,9 @@ Transfer Bridge transformations (resize/convert/compress) strip EXIF metadata. T
          │                                               │
          │ Step 3: Face Detection (on original)          │
          ▼                                               │
-  ┌─────────────┐     Update Table with          │
-  │ Face API    │     has_face, blob_container   │
-  │ (Azure)     │────────────────────────────────┘
+  ┌─────────────┐     Update Table with                  │
+  │ Face API    │     has_face, blob_container           │
+  │ (Azure)     │────────────────────────────────────────┘
   └──────┬──────┘
          │ has_face: Yes/No
          │
@@ -72,9 +72,9 @@ Transfer Bridge transformations (resize/convert/compress) strip EXIF metadata. T
        │           │
        │           │ Step 6: ML Model receives image (no EXIF)
        │           ▼
-       │  ┌─────────────────┐     Query Table    ┌──────────────────┐
-       │  │   ML Model      │◀───────────────────│  Azure Table     │
-       │  │ query + process │                    └──────────────────┘
+       │  ┌─────────────────┐     Query Table     ┌──────────────────┐
+       │  │   ML Model      │◀───────────────────│  Azure Table      │
+       │  │ query + process │                     └──────────────────┘
        │  └────────┬────────┘
        │           │
        │           │ Step 7: Upload to approved container
