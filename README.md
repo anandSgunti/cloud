@@ -118,4 +118,3 @@ The pipeline demonstrates: EXIF extraction → Table storage → Face detection 
 
 ---
 
-*This repository was created as part of the CloudFactory AI Platform Implementation Engineer assessment.*
