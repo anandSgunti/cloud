@@ -53,7 +53,6 @@ cloud/
 ├── Email.md                           # CEO escalation (Part 2) – model quality & delays
 ├── Unified-Solution.md                # Full unified architecture (both problems)
 ├── working solution.md                # End-to-end execution guide (setup, run, validate)
-├── API Integration.md                 # API integration notes
 │
 ├── 01-root-cause-analysis/
 │   └── RCA.md                         # Root cause: EXIF loss at resize step
