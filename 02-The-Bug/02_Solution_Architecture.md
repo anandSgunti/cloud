@@ -204,13 +204,13 @@ graph TB
         direction TB
         SPACER1[" "]
         AF["Azure Functions<br/>(Pre-Processing)<br/><br/>💰 $10-20/month"]
-        SPACER2[" "]
+   
         AT["Azure Tables<br/>(Metadata Store)<br/><br/>💰 $5/month"]
-        SPACER3[" "]
+    
         BS["Azure Blob Storage<br/>(Images)<br/><br/>💰 Existing"]
-        SPACER4[" "]
+    
         AI["Application Insights<br/>(Monitoring)<br/><br/>💰 $10-20/month"]
-        SPACER5[" "]
+  
         TOTAL["Total: $25-45/month"]
         
         SPACER1 ~~~ AF
