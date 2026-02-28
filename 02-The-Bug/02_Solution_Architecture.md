@@ -238,45 +238,44 @@ graph LR
 
 ## Monitoring Dashboard
 ```mermaid
-graph LR
-    subgraph Processing["📊 Today's Processing"]
-        P1["Images Processed: 1,247"]
-        P2["EXIF Extracted: 99.8%"]
-        P3["Metadata Saved: 100%"]
-        P4["ML Success Rate: 94.2% ✅"]
+%%{init: {'theme':'base', 'themeVariables': { 'fontSize':'16px'}}}%%
+graph TD
+    subgraph Dashboard["ZeroCorp Image Pipeline - Live Status"]
+        direction TB
+        
+        subgraph Processing["📊 Today's Processing"]
+            P1["Images Processed: 1,247"]
+            P2["EXIF Extracted: 99.8%"]
+            P3["Metadata Saved: 100%"]
+            P4["ML Success Rate: 94.2% ✅"]
+        end
+        
+        subgraph Performance["⚡ Performance"]
+            PF1["Pre-Processing Time: 340ms avg"]
+            PF2["Database Write Time: 18ms avg"]
+            PF3["Metadata Query Time: 23ms avg"]
+        end
+        
+        subgraph Alerts["🚨 Alerts"]
+            A1["No active alerts ✅"]
+        end
     end
     
-    subgraph Performance["⚡ Performance"]
-        PERF1["Pre-Processing Time: 340ms avg"]
-        PERF2["Database Write Time: 18ms avg"]
-        PERF3["Metadata Query Time: 23ms avg"]
-    end
+    style Dashboard fill:#f0f8ff,stroke:#0078d4,stroke-width:3px,color:#000,text-align:left
+    style Processing fill:#e6f3ff,stroke:#0078d4,stroke-width:2px,color:#000,text-align:left
+    style Performance fill:#e6f3ff,stroke:#0078d4,stroke-width:2px,color:#000,text-align:left
+    style Alerts fill:#d4edda,stroke:#28a745,stroke-width:2px,color:#000,text-align:left
     
-    subgraph Alerts["🚨 Alerts"]
-        A1["No active alerts ✅"]
-    end
+    style P1 fill:#fff,stroke:#0078d4,stroke-width:1px,color:#000,text-align:left
+    style P2 fill:#fff,stroke:#0078d4,stroke-width:1px,color:#000,text-align:left
+    style P3 fill:#fff,stroke:#0078d4,stroke-width:1px,color:#000,text-align:left
+    style P4 fill:#d4edda,stroke:#28a745,stroke-width:1px,color:#000,text-align:left
     
-    P1 ~~~ P2
-    P2 ~~~ P3
-    P3 ~~~ P4
+    style PF1 fill:#fff,stroke:#0078d4,stroke-width:1px,color:#000,text-align:left
+    style PF2 fill:#fff,stroke:#0078d4,stroke-width:1px,color:#000,text-align:left
+    style PF3 fill:#fff,stroke:#0078d4,stroke-width:1px,color:#000,text-align:left
     
-    PERF1 ~~~ PERF2
-    PERF2 ~~~ PERF3
-    
-    style Processing fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#000
-    style Performance fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000
-    style Alerts fill:#e8f5e9,stroke:#388e3c,stroke-width:2px,color:#000
-    
-    style P1 fill:#fff,stroke:#1976d2,color:#000
-    style P2 fill:#fff,stroke:#1976d2,color:#000
-    style P3 fill:#fff,stroke:#1976d2,color:#000
-    style P4 fill:#c8e6c9,stroke:#388e3c,stroke-width:2px,color:#000,font-weight:bold
-    
-    style PERF1 fill:#fff,stroke:#f57c00,color:#000
-    style PERF2 fill:#fff,stroke:#f57c00,color:#000
-    style PERF3 fill:#fff,stroke:#f57c00,color:#000
-    
-    style A1 fill:#c8e6c9,stroke:#388e3c,stroke-width:2px,color:#000,font-weight:bold
+    style A1 fill:#d4edda,stroke:#28a745,stroke-width:2px,color:#000,text-align:left
 ```
 ## Success Metrics
 
