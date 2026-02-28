@@ -46,7 +46,7 @@ Each option was evaluated using the following criteria:
 | **Architecture Quality** | Moderate | High | Low | Low |
 | **Extensibility** | Moderate | Excellent | Limited | Limited |
 | **Implementation Time** | 2–3 weeks | 3–4 weeks | 1–2 weeks | 1–2 weeks |
-| **Infrastructure Cost** | $0 | $50–100/month | $0 | $0 |
+| **Infrastructure Cost** | $0 | $10/month | $0 | $0 |
 | **Analytics Capability** | No | Yes | No | Limited |
 | **Compliance / Audit Ready** | No | Yes | No | Limited |
 | **Future-Proof** | Moderate | Excellent | Limited | Limited |
@@ -79,7 +79,7 @@ Technically clean but increases operational risk.
 ## Option 2: Pre-Processing Metadata Store (Recommended)
 
 ### Description
-Introduce a pre-processing layer that extracts EXIF metadata before the image enters the Bridge and stores it in a centralized database.
+Introduce a pre-processing layer that extracts EXIF metadata before the image enters the Bridge and stores it in a centralized database / Azure Table.
 
 Bridge remains unchanged.
 
@@ -93,7 +93,7 @@ Bridge remains unchanged.
 
 ### Trade-Offs
 - Requires database infrastructure
-- Slight query latency (10–50ms)
+- Slight query latency
 - Moderate implementation complexity
 
 ### Architectural Alignment
@@ -154,7 +154,7 @@ Technically viable but limited in flexibility and long-term scalability.
 
 # Strategic Value of Selected Option
 
-## ⭐ Dual Purpose Value
+##  Dual Purpose Value
 
 The Metadata Store provides benefits beyond fixing EXIF loss:
 
@@ -165,22 +165,6 @@ The Metadata Store provides benefits beyond fixing EXIF loss:
 - ✅ Enable future metadata-driven features  
 
 This transforms a tactical bug fix into a foundational metadata management capability.
-
----
-
-# Final Recommendation
-
-## Selected Architecture: Pre-Processing Metadata Store
-
-This option was selected because it:
-
-- Eliminates metadata loss completely
-- Minimizes production system risk
-- Preserves existing investment
-- Aligns with enterprise storage best practices
-- Improves scalability and observability
-- Provides long-term architectural leverage
-- Delivers strong return on investment
 
 ---
 
