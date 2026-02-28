@@ -180,59 +180,37 @@ flowchart TD
 ```
 
 ### Simplified Data Flow with EXIF Status
-```
-┌─────────────────┐
-│   iCloud        │
-│   (Source)      │  EXIF:  Present
-└────────┬────────┘  GPS:  37.7749, -122.4194
-         │            Timestamp:  2026-02-20 14:23:45
-         ▼
-┌─────────────────┐
-│   Download      │  EXIF:  Still Present
-│   (iCloud API)  │  (API preserves metadata)
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│  Image.open()   │  EXIF:  Still Present
-│  (Pillow)       │  (Loaded into memory)
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────────────────────────┐
-│  img.resize(1920, 1080)             │
-│    EXIF LOST HERE                 │  EXIF:  LOST
-│                                     │  GPS:  Missing
-│  Why: Creates new Image object     │  Timestamp:  Missing
-│       without copying EXIF          │
-└────────┬────────────────────────────┘
-         │
-         ▼
-┌─────────────────┐
-│  img.convert()  │  EXIF:  Still Missing
-│  (to RGB)       │  (Can't restore what's gone)
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│  img.save()     │  EXIF:  Still Missing
-│  (compress)     │  (No exif= parameter)
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│  Upload to      │  EXIF:  Missing
-│  CloudFactory   │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│  ML Model       │   ERROR: Required metadata missing
-│  Processing     │  Cannot execute without GPS/Timestamp
-└─────────────────┘
+```mermaid
+flowchart TD
+    A["iCloud (Source)<br/>EXIF: Present<br/>GPS: 37.7749, -122.4194<br/>Timestamp: 2026-02-20 14:23:45"]
+    
+    B["Download (iCloud API)<br/>EXIF: Still Present<br/>(API preserves metadata)"]
+    
+    C["Image.open() (Pillow)<br/>EXIF: Still Present<br/>(Loaded into memory)"]
+    
+    D["img.resize(1920, 1080)<br/>⚠️ EXIF LOST HERE<br/>GPS: Missing<br/>Timestamp: Missing<br/>Why: Creates new Image object<br/>without copying EXIF"]
+    
+    E["img.convert() (to RGB)<br/>EXIF: Still Missing<br/>(Can't restore what's gone)"]
+    
+    F["img.save() (compress)<br/>EXIF: Still Missing<br/>(No exif= parameter)"]
+    
+    G["Upload to CloudFactory<br/>EXIF: Missing"]
+    
+    H["ML Model Processing<br/>❌ ERROR: Required metadata missing<br/>Cannot execute without GPS/Timestamp"]
+    
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+    E --> F
+    F --> G
+    G --> H
+    
+    style D fill:#ff6b6b,stroke:#c92a2a,color:#fff
+    style H fill:#ff6b6b,stroke:#c92a2a,color:#fff
 ```
 
----
+
 
 ## Step-by-Step Analysis
 
