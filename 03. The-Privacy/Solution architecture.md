@@ -22,7 +22,7 @@ flowchart TD
         FaceDetect[Face Detection<br/>Azure Face API]
     end
     
-    TableStorage[(Azure Table Storage<br/>═══════════════<br/>Unified Metadata Store<br/>• EXIF data<br/>• Face detection status<br/>• Audit timestamps)]
+    TableStorage[(Azure Table Storage<br/>═══════════════<br/>• Face detection status<br/>• Audit timestamps)]
     
     Decision{Face<br/>Detected?}
     
