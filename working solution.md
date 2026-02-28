@@ -147,7 +147,7 @@ Flow:
 📊 Diagram:
 (Insert architecture diagram screenshot here)
 
-![Screenshot 6 – Face API Overview](/Picture1.png)
+![Screenshot 6 – Face API Overview](/zerocorp_flow.png)
 
 ---
 
@@ -166,56 +166,188 @@ Flow:
 
 ---
 
-# 6. Validation & Testing
+# 6. Application Execution & Output Demonstration
 
-## Test Case 1: Image With Face
-Expected:
-- Stored in quarantine
-- Metadata logged
-- Deleted within SLA
-
-## Test Case 2: Image Without Face
-Expected:
-- Stored in approved container
-- EXIF preserved
-- No deletion triggered
-
-📸 Screenshot 7: Test Results in Portal
+This section demonstrates the live backend execution and observable outputs of the ZeroCorp image pipeline.
 
 ---
 
-# 7. Results Achieved
+## 6.1 Backend Execution
 
-✅ Secure face detection implemented
-✅ PII compliance enforced
-✅ Hard delete within 24 hours ensured
-✅ Audit trail established
-✅ Infrastructure deployed successfully
+The Python backend performs the following steps:
+
+1. **Load images** from `sample_images/` folder (Images Folder / staging)
+2. **Extract EXIF** metadata (GPS, timestamp, camera) from original image
+3. **Save EXIF to Table Storage** (status: `exif_saved`)
+4. **Call Azure Face API** on original image
+5. **Evaluate response** — face detected / no face / unknown (fail-closed → quarantine)
+6. **Route image** to quarantine or approved path:
+   - **Face / unknown** → quarantine container (skip Bridge, will be deleted)
+   - **No face** → Transfer Bridge → ML Model (query Table for metadata) → approved container
+7. **Log transaction** in Table Storage (status, routing\_state, approved\_blob\_uri)
+
+### Sample Command (Local Execution)
+
+```
+python main.py
+```
+
+### Console Output :&#x20;
+
+**EXIF Extracted  **
+
+![image.png](/Screenshots/Picture7.png)
+
+EXIF Metadata Save to Azure Table
+
+![image.png](/Screenshots/Picture8.png)
+
+![image.png](https://files.nuclino.com/files/3fbd33bc-c098-42d0-bb4d-d1817c3974ab/image.png)
+
+<br>
+
+<br>
+
+![image.png](https://files.nuclino.com/files/c9e5c936-dea5-4a74-9887-1c3b0a630986/image.png)
+
+![image.png](https://files.nuclino.com/files/48c560fe-fcd0-4754-b54b-3d6ce893b539/image.png)
+
+<br>
 
 ---
 
-# 8. Conclusion
+## 7.2 Portal Validation (Visual Proof)
 
-This demo demonstrates a compliant, production-ready image pipeline that:
-- Protects PII
-- Preserves model-critical metadata
-- Enforces hard deletion requirements
-- Uses Azure-native services for scalability and reliability
+### Case 1: Face Image
+
+**Validation Steps:**
+
+- Confirm blob appears in `quarantine` container
+- Confirm entry exists in `imagemetadata` table
+- Confirm deletion after SLA window (hourly purge job)
+
+![image.png](https://files.nuclino.com/files/b6925f22-3267-4964-8bb5-dd9ad2d8ca16/image.png)
+
+![image.png](https://files.nuclino.com/files/023269c7-651c-4435-9540-119881a9362d/image.png)
 
 ---
 
-# 9. Appendix
+### Case 2: Non-Face Image
 
-## Resources Created
-- Resource Group: zerocorp-image-pipeline
-- Storage Account
-- 2 Blob Containers
-- 1 Table Storage
-- Lifecycle Policy
-- Azure Face API
+**Validation Steps:**
 
-## Future Enhancements
+- Confirm blob appears in `approved` container
+- Confirm EXIF metadata values stored correctly in table
+- Confirm no `pii_delete_deadline` (no deletion scheduled)
+
+![image.png](https://files.nuclino.com/files/d8b57843-533d-4a4f-a381-ba4f740b11dd/image.png)
+
+![image.png](https://files.nuclino.com/files/b4f4546d-b816-41f3-b640-05aea3c3d805/image.png)
+
+## 7.3 Table Storage Record Example
+
+Table: `imagemetadata`\
+PartitionKey: `images` (all entities use same partition)
+
+### Approved Image (No Face)
+
+| Field                 | Value                                                                     |
+| --------------------- | ------------------------------------------------------------------------- |
+| PartitionKey          | images                                                                    |
+| RowKey                | warehouse\_002.jpg                                                        |
+| gps\_latitude         | 37.4419                                                                   |
+| gps\_longitude        | -122.143                                                                  |
+| timestamp\_original   | 2026:02:27 17:35:20                                                       |
+| has\_human\_face      | False                                                                     |
+| routing\_state        | approved                                                                  |
+| status                | approved\_written                                                         |
+| approved\_blob\_uri   | <https://transferimages.blob.core.windows.net/approved/warehouse_002.jpg> |
+| pii\_delete\_deadline | *(not set)*                                                               |
+| schema\_version       | 1                                                                         |
+
+### Quarantine Image (Face Detected)
+
+| Field                 | Value                            |
+| --------------------- | -------------------------------- |
+| PartitionKey          | images                           |
+| RowKey                | warehouse\_001.jpg               |
+| gps\_latitude         | 37.3382                          |
+| gps\_longitude        | -121.8863                        |
+| timestamp\_original   | 2026:02:27 17:35:19              |
+| has\_human\_face      | True                             |
+| routing\_state        | quarantine                       |
+| status                | quarantined\_written             |
+| pii\_delete\_deadline | 2026-02-28T17:35:19Z (UTC + 24h) |
+| schema\_version       | 1                                |
+
+---
+
+## 7.4 Deletion Job Demonstration
+
+Hourly deletion job purges **all blobs** in the quarantine container (quarantine = PII zone; everything there is destined for deletion).
+
+**Sample output:**
+
+```
+Deletion job started: 2026-02-28 16:00
+Scanning quarantine container...
+Found 3 blobs in quarantine
+Deleting blobs...
+   Deleted: warehouse_001.jpg
+   Deleted: employee_001.jpg
+   Deleted: portrait_002.jpg
+Deletion complete
+Table updated: status=pii_deleted
+Audit log updated
+```
+
+**Validation:**
+
+- Blobs removed from quarantine container
+- Table row updated with `status=pii_deleted` and deletion timestamp
+
+**Screenshot 11:** Quarantine Container After Deletion *(Insert screenshot)*
+
+---
+
+# 8. Results Achieved
+
+| Requirement                          | Status                             |
+| ------------------------------------ | ---------------------------------- |
+| Secure face detection implemented    | Done                               |
+| PII compliance enforced              | Done                               |
+| Hard delete within 24 hours ensured  | Done (quarantine purge)            |
+| Audit trail established              | Done (status, timestamps in table) |
+| EXIF metadata preserved for ML model | Done                               |
+| Infrastructure deployed              | Done                               |
+
+---
+
+# 9. Conclusion
+
+This demo shows a compliant, production-ready image pipeline that:
+
+- **Protects PII** — face images routed to quarantine and hard-deleted
+- **Preserves model-critical metadata** — EXIF extracted before Bridge, stored in Table
+- **Enforces hard deletion** — quarantine blobs purged on schedule
+- **Uses Azure-native services** — Face API, Blob, Table Storage
+
+---
+
+# 10. Appendix
+
+### Resources Used
+
+- Storage Account: `transferimages`
+- Blob Containers: `quarantine`, `approved`
+- Table: `imagemetadata`
+- Azure Face API (East US)
+
+### Future Enhancements
+
 - CI/CD deployment via Bicep/Terraform
-- Service Principal authentication
+- Managed identity / Service Principal authentication
+- Lifecycle policy for automated blob purge
 - Automated compliance dashboard
 
+<br>
