@@ -41,7 +41,7 @@ Resource group created successfully.
 📸 Screenshot 1: Resource Group Overview
 
 
-./Screenshots/Picture1.png
+![Screenshot 2 – Storage Account Properties](/Screenshots/Picture1.png)
 
 ---
 
@@ -65,7 +65,7 @@ Storage account deployed successfully.
 
 📸 Screenshot 2: Storage Account – Data Protection Settings
 
-![Screenshot 2 – Storage Account Properties](/Screenshots/Picture1.png)
+![Screenshot 2 – Storage Account Properties](/Screenshots/Picture2.png)
 
 ---
 
@@ -79,7 +79,7 @@ Both containers visible under Data Storage → Containers.
 
 📸 Screenshot 3: Blob Containers List
 
-![Screenshot 3 – Blob Containers](/mnt/data/e54cd6c7-7df8-4a05-b9b0-764454380c16.png)
+![Screenshot 3 – Blob Containers](/Screenshots/Picture3.png)
 
 ---
 
@@ -94,7 +94,7 @@ Table visible in Tables section.
 
 📸 Screenshot 4: Table Storage View
 
-![Screenshot 4 – Table Storage](/mnt/data/f7147a27-b20c-43dc-b301-469696ce5d70.png)
+![Screenshot 4 – Table Storage](/Screenshots/Picture4.png)
 
 ---
 
@@ -111,7 +111,7 @@ Lifecycle rule visible under Data Management → Lifecycle Management.
 
 📸 Screenshot 5: Lifecycle Policy Rule
 
-![Screenshot 5 – Lifecycle Management Rule](/mnt/data/256e258a-fc92-412e-90a6-254907376c97.png)
+![Screenshot 5 – Lifecycle Management Rule](/Screenshots/Picture5.png)
 
 ---
 
@@ -129,7 +129,7 @@ Face API deployed successfully.
 
 📸 Screenshot 6: Face API Resource Overview
 
-![Screenshot 6 – Face API Overview](/mnt/data/21260dd5-a4e1-446d-b846-1442acb862bb.png)
+![Screenshot 6 – Face API Overview](/Screenshots/Picture6.png)
 
 ---
 
@@ -146,6 +146,8 @@ Flow:
 
 📊 Diagram:
 (Insert architecture diagram screenshot here)
+
+![Screenshot 6 – Face API Overview](/Picture1.png)
 
 ---
 
