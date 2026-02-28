@@ -136,7 +136,7 @@ Status: EXCEEDS by 40x
 - Max retention: 59 minutes
 - Requirement: 1,440 minutes (24h)
 - Buffer: 1,381 minutes
-- Status: ✅ COMPLIANT
+- Status:  COMPLIANT
 
 **Advantages**:
 - Simpler than per-image deadlines
@@ -171,11 +171,11 @@ Status: EXCEEDS by 40x
 
 ## Success Criteria
 
- Face images routed to quarantine  
- Hourly purge executes  
- All deletions < 1 hour  
- Audit trail complete  
- 100% compliance rate  
+- Face images routed to quarantine
+- Hourly purge executes
+- All deletions < 1 hour
+- Audit trail complete
+- 100% compliance rate 
 
 ---
 
