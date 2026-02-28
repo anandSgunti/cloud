@@ -214,14 +214,10 @@ graph TB
         TOTAL["Total: $25-45/month"]
         
         SPACER1 ~~~ AF
-        AF ~~~ SPACER2
-        SPACER2 ~~~ AT
-        AT ~~~ SPACER3
-        SPACER3 ~~~ BS
-        BS ~~~ SPACER4
-        SPACER4 ~~~ AI
-        AI ~~~ SPACER5
-        SPACER5 ~~~ TOTAL
+        AF ~~~  AT
+        AT ~~~  BS
+        BS ~~~  AI
+        AI ~~~ TOTAL
     end
     
     style RG fill:#e6f3ff,stroke:#0078d4,stroke-width:3px,color:#000
@@ -260,6 +256,7 @@ graph TB
 ```mermaid
 graph TB
     subgraph Dashboard["ZeroCorp Image Pipeline - Live Status"]
+    SPACER1[" "]
 
         subgraph Processing[" Today's Processing"]
             P1["Images Processed: 1,247"]
@@ -278,7 +275,7 @@ graph TB
             A1["No active alerts "]
         end
     end
-    
+    SPACER1 ~~~ P1
     P1 ~~~ P2
     P2 ~~~ P3
     P3 ~~~ P4
