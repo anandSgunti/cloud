@@ -239,23 +239,22 @@ graph LR
 ## Monitoring Dashboard
 ```mermaid
 graph LR
-    
     subgraph Processing["📊 Today's Processing"]
-            P1["Images Processed: 1,247"]
-            P2["EXIF Extracted: 99.8%"]
-            P3["Metadata Saved: 100%"]
-            P4["ML Success Rate: 94.2% ✅"]
-        end
-        
+        P1["Images Processed: 1,247"]
+        P2["EXIF Extracted: 99.8%"]
+        P3["Metadata Saved: 100%"]
+        P4["ML Success Rate: 94.2% ✅"]
+    end
+    
     subgraph Performance["⚡ Performance"]
-            PERF1["Pre-Processing Time: 340ms avg"]
-            PERF2["Database Write Time: 18ms avg"]
-            PERF3["Metadata Query Time: 23ms avg"]
-        end
-        
+        PERF1["Pre-Processing Time: 340ms avg"]
+        PERF2["Database Write Time: 18ms avg"]
+        PERF3["Metadata Query Time: 23ms avg"]
+    end
+    
     subgraph Alerts["🚨 Alerts"]
-            A1["No active alerts ✅"]
-        end
+        A1["No active alerts ✅"]
+    end
     
     P1 ~~~ P2
     P2 ~~~ P3
@@ -264,7 +263,6 @@ graph LR
     PERF1 ~~~ PERF2
     PERF2 ~~~ PERF3
     
-    style Dashboard fill:#f0f4f8,stroke:#0078d4,stroke-width:3px,color:#000
     style Processing fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#000
     style Performance fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000
     style Alerts fill:#e8f5e9,stroke:#388e3c,stroke-width:2px,color:#000
