@@ -140,28 +140,6 @@ flowchart TD
 ### Phase 2: Routing
 ```mermaid
 flowchart TD
-    Start([User uploads image]) --> Download[1. INGEST ORIGINAL IMAGE<br/>Download from iCloud with EXIF]
-    
-    Download --> Extract[2. EXTRACT EXIF → STORE IN TABLE]
-    
-    Extract --> ExtractDetails[Extract metadata:<br/>• GPS coordinates<br/>• Timestamp<br/>• Camera model]
-    
-    ExtractDetails --> StoreTable[(Azure Table Storage)]
-    StoreTable --> TableEntry[Store with image_id as partition key:<br/>• gps_lat, gps_lon<br/>• timestamp<br/>• camera_model<br/>• original_filename]
-    
-    TableEntry --> Problem1[✓ Problem 1 Solved:<br/>Metadata preserved separately]
-    
-    Problem1 --> FaceDetect[3. DETECT FACES → UPDATE TABLE]
-    
-    FaceDetect --> AzureFace[Call Azure Face API<br/>Detect human faces]
-    
-    AzureFace --> HasFace{has_human_face?}
-    
-    HasFace -->|TRUE| UpdateTrue[Update Table Storage:<br/>• has_human_face: TRUE<br/>• face_detection_timestamp: NOW<br/>• pii_delete_deadline: NOW + 24h<br/>• pii_deleted_at: NULL]
-    
-    HasFace -->|FALSE| UpdateFalse[Update Table Storage:<br/>• has_human_face: FALSE<br/>• face_detection_timestamp: NOW<br/>• pii_delete_deadline: NULL<br/>• pii_deleted_at: NULL]
-    
-    UpdateTrue --> Route
     UpdateFalse --> Route[4. ROUTING DECISION]
     
     Route --> RouteFace{Face detected?}
