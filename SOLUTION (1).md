@@ -2,7 +2,7 @@
 _Last updated: 2026-02-28_
 
 ## 1) Summary
-Transfer Bridge transformations (resize/convert/compress) strip EXIF metadata. This solution preserves EXIF by extracting it **before** the bridge and storing it in **Azure Table Storage**, while enforcing privacy by routing any image with a detected (or unknown) human face to a **quarantine** container that is **hard-deleted within 24 hours**.
+Transfer Bridge transformations (resize/convert/compress) strip EXIF metadata. This solution preserves EXIF by extracting it **before** the bridge and storing it in **Azure SQL**, while enforcing privacy by routing any image with a detected (or unknown) human face to a **quarantine** container that is **hard-deleted within 24 hours**.
 
 ## 2) Goals and Non‑Goals
 
