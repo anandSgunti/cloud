@@ -23,13 +23,25 @@ Instead of changing the Transfer Bridge:
 
 ---
 
+## End-to-End Working Solution
+
+The solution is **implemented and executed end-to-end**. For the complete working guide—Azure setup, resource configuration, execution steps, and validation—see:
+
+| Document | Contents |
+|----------|----------|
+| **[`working solution.md`](working%20solution.md)** | Full end-to-end guide: Azure resource setup, lifecycle policy, Face API, app execution, console output, portal validation, Table Storage records, deletion job demo, and results achieved |
+
+Use `working solution.md` when you want to run the pipeline yourself or verify the full flow.
+
+---
+
 ## Repository Structure
 
 ```
 cloud-11/
 ├── README.md                          # This file
 ├── Unified-Solution.md                # Full unified architecture (both problems)
-├── working solution.md                # Working solution summary
+├── working solution.md                # End-to-end execution guide (setup, run, validate)
 ├── API Integration.md                 # API integration notes
 │
 ├── 01-root-cause-analysis/
@@ -73,6 +85,7 @@ cloud-11/
 
 | Topic | Document |
 |-------|----------|
+| **How to run end-to-end (working guide)** | **`working solution.md`** |
 | Why EXIF is lost | `01-root-cause-analysis/RCA.md` |
 | EXIF solution options | `02-The-Bug/01_Solutions_Options.md` |
 | EXIF solution design | `02-The-Bug/02_Solution_Architecture.md` |
