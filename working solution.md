@@ -202,21 +202,19 @@ EXIF Metadata Save to Azure Table
 
 ![image.png](/Screenshots/Picture8.png)
 
-![image.png](https://files.nuclino.com/files/3fbd33bc-c098-42d0-bb4d-d1817c3974ab/image.png)
+![image.png](/Screenshots/Picture9.png)
 
 <br>
 
 <br>
 
-![image.png](https://files.nuclino.com/files/c9e5c936-dea5-4a74-9887-1c3b0a630986/image.png)
-
-![image.png](https://files.nuclino.com/files/48c560fe-fcd0-4754-b54b-3d6ce893b539/image.png)
-
+![image.png](/Screenshots/Picture10.png)
+![image.png](/Screenshots/Picture11.png)
 <br>
 
 ---
 
-## 7.2 Portal Validation (Visual Proof)
+## 6.2 Portal Validation (Visual Proof)
 
 ### Case 1: Face Image
 
@@ -226,9 +224,8 @@ EXIF Metadata Save to Azure Table
 - Confirm entry exists in `imagemetadata` table
 - Confirm deletion after SLA window (hourly purge job)
 
-![image.png](https://files.nuclino.com/files/b6925f22-3267-4964-8bb5-dd9ad2d8ca16/image.png)
-
-![image.png](https://files.nuclino.com/files/023269c7-651c-4435-9540-119881a9362d/image.png)
+![image.png](/Screenshots/Picture12.png)
+![image.png](/Screenshots/Picture13.png)
 
 ---
 
@@ -240,11 +237,10 @@ EXIF Metadata Save to Azure Table
 - Confirm EXIF metadata values stored correctly in table
 - Confirm no `pii_delete_deadline` (no deletion scheduled)
 
-![image.png](https://files.nuclino.com/files/d8b57843-533d-4a4f-a381-ba4f740b11dd/image.png)
+![image.png](/Screenshots/Picture14.png)
+![image.png](/Screenshots/Picture15.png)
 
-![image.png](https://files.nuclino.com/files/b4f4546d-b816-41f3-b640-05aea3c3d805/image.png)
-
-## 7.3 Table Storage Record Example
+## 6.3 Table Storage Record Example
 
 Table: `imagemetadata`\
 PartitionKey: `images` (all entities use same partition)
@@ -282,7 +278,7 @@ PartitionKey: `images` (all entities use same partition)
 
 ---
 
-## 7.4 Deletion Job Demonstration
+## 6.4 Deletion Job Demonstration
 
 Hourly deletion job purges **all blobs** in the quarantine container (quarantine = PII zone; everything there is destined for deletion).
 
@@ -310,7 +306,7 @@ Audit log updated
 
 ---
 
-# 8. Results Achieved
+# 7. Results Achieved
 
 | Requirement                          | Status                             |
 | ------------------------------------ | ---------------------------------- |
@@ -323,7 +319,7 @@ Audit log updated
 
 ---
 
-# 9. Conclusion
+# 8. Conclusion
 
 This demo shows a compliant, production-ready image pipeline that:
 
@@ -334,7 +330,7 @@ This demo shows a compliant, production-ready image pipeline that:
 
 ---
 
-# 10. Appendix
+# 9. Appendix
 
 ### Resources Used
 
