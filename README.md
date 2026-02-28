@@ -5,20 +5,6 @@
 
 ---
 
-## The Scenario
-
-ZeroCorp's CEO has invested **$50,000** in a proprietary **Transfer Bridge** to move images from employee iCloud accounts to CloudFactory.
-
-### The Crisis
-
-| Issue | Description |
-|-------|-------------|
-| **The Bug** | The Bridge strips EXIF metadata (GPS, timestamps), which is required for the ML model to function. |
-| **The Privacy Rule** | All images with human faces must be **Hard Deleted within 24 hours**. |
-| **The Players** | The Transfer Bridge was built by the CEO's "Star Developer." The CEO is non-technical and has a close relationship with the developer. She wants no delays or dips in quality. |
-
----
-
 ## Solution Overview
 
 ### Approach: Pre-Processing Layer (Non-Invasive)
