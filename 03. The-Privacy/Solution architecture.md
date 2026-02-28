@@ -17,32 +17,49 @@ Automated face detection system that routes PII images to quarantine and deletes
 ```mermaid
 flowchart TD
     Start[Image Upload<br/>iCloud API]
-    FaceDetect[Face Detection<br/>Azure Face API]
+    
+    subgraph PreProcess[PRE-PROCESSING LAYER]
+        ExtractEXIF[Extract EXIF Metadata<br/>GPS, timestamp, camera info]
+        FaceDetect[Face Detection<br/>Azure Face API]
+        ExtractEXIF --> FaceDetect
+    end
+    
+    TableStorage[(Azure Table Storage<br/>═══════════════<br/>Unified Metadata Store<br/>• EXIF data<br/>• Face detection status<br/>• Audit timestamps)]
+    
     Decision{Face<br/>Detected?}
     
     subgraph NoFace[NO FACE PATH]
-        Bridge[Transfer Bridge<br/>• Resize<br/>• Compress<br/>• Strip EXIF]
-        Approved[(Approved Container<br/>📦 Permanent Storage)]
+        Bridge[Transfer Bridge<br/>────────────<br/>• Resize & Compress<br/>• Strip EXIF from file<br/><br/>⚠️ Bug Solution:<br/>EXIF preserved in Table Storage<br/>NOT in processed image file]
+        Approved[(Approved Container<br/>📦 Permanent Storage<br/>────────────<br/>Processed images WITHOUT EXIF)]
+        ML[ML Model<br/>────────────<br/>1. Download processed image<br/>2. Query Table Storage for EXIF<br/>3. Combine both<br/>4. Process with complete data ✅]
     end
     
     subgraph FacePath[FACE DETECTED PATH]
-        Quarantine[(⚠️ Quarantine Container<br/>⏰ Hourly Purge)]
+        Quarantine[(⚠️ Quarantine Container<br/>⏰ Hourly Purge<br/>────────────<br/>Original unprocessed images<br/>⛔ Bridge SKIPPED<br/>⛔ ML BLOCKED)]
     end
     
-    Start --> FaceDetect
-    FaceDetect --> Decision
+    Start --> PreProcess
+    PreProcess --> TableStorage
+    TableStorage --> Decision
     
     Decision -->|NO| Bridge
     Bridge --> Approved
+    Approved --> ML
+    ML -.Query EXIF metadata.-> TableStorage
     
     Decision -->|YES| Quarantine
     
-    style Start fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
-    style FaceDetect fill:#fff3e0,stroke:#f57c00,stroke-width:2px
-    style Decision fill:#fce4ec,stroke:#c2185b,stroke-width:2px
+    Note1[🔑 UNIFIED SOLUTION:<br/>────────────────<br/>Problem 1 EXIF Loss: Metadata extracted BEFORE Bridge strips it<br/>Problem 2 PII Compliance: Faces detected BEFORE processing<br/>────────────────<br/>Table Storage links both solutions via image_id]
+    
+    TableStorage -.-> Note1
+    
+    style PreProcess fill:#e1f5ff,stroke:#0066cc,stroke-width:3px
+    style TableStorage fill:#fff4e6,stroke:#ff6f00,stroke-width:3px
     style Bridge fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
     style Approved fill:#c8e6c9,stroke:#2e7d32,stroke-width:3px
+    style ML fill:#f3e5f5,stroke:#9c27b0,stroke-width:2px
     style Quarantine fill:#ffcdd2,stroke:#c62828,stroke-width:3px
+    style Note1 fill:#fffde7,stroke:#f57f17,stroke-width:2px,stroke-dasharray: 5 5
 ```
 
 ---
