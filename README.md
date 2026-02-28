@@ -1,7 +1,4 @@
-# ZeroCorp Transfer Bridge – Assessment Solution
-
-**Assessment**: CloudFactory AI Platform Implementation Engineer  
-**Date**: February 2026  
+# ZeroCorp Transfer Bridge – Assessment Solution 
 
 ---
 
