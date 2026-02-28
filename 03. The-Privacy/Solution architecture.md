@@ -27,13 +27,13 @@ flowchart TD
     Decision{Face<br/>Detected?}
     
     subgraph NoFace[NO FACE PATH]
-        Bridge[Transfer Bridge<br/>────────────<br/>• Resize & Compress<br/>• Strip EXIF from file<br/><br/>⚠️ Bug Solution:<br/>EXIF preserved in Table Storage<br/>NOT in processed image file]
-        Approved[(Approved Container<br/>📦 Permanent Storage<br/>────────────<br/>Processed images WITHOUT EXIF)]
-        ML[ML Model<br/>────────────<br/>1. Download processed image<br/>2. Query Table Storage for EXIF<br/>3. Combine both<br/>4. Process with complete data ✅]
+        Bridge[Transfer Bridge<br/>────────────<br/>• Resize & Compress<br/>• Strip EXIF from file<br/><br/> Bug Solution:<br/>EXIF preserved in Table Storage<br/>NOT in processed image file]
+        Approved[(Approved Container<br/> Permanent Storage<br/>────────────<br/>Processed images WITHOUT EXIF)]
+        ML[ML Model<br/>────────────<br/>1. Download processed image<br/>2. Query Table Storage for EXIF<br/>3. Combine both<br/>4. Process with complete data ]
     end
     
     subgraph FacePath[FACE DETECTED PATH]
-        Quarantine[(⚠️ Quarantine Container<br/>⏰ Hourly Purge<br/>────────────<br/>Original unprocessed images<br/>⛔ Bridge SKIPPED<br/>⛔ ML BLOCKED)]
+        Quarantine[( Quarantine Container<br/> Hourly Purge<br/>────────────<br/>Original unprocessed images<br/> Bridge SKIPPED<br/> ML BLOCKED)]
     end
     
     Start --> PreProcess
