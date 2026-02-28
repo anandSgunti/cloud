@@ -156,39 +156,6 @@ sequenceDiagram
     Note over ML: Success! 
 ```
 
----
-
-## Database Schema (Simplified)
-
-### What We Store
-```
-IMAGE_METADATA Table
-┌─────────────────────────────────────────────────────┐
-│ Field                  │ Example Value              │
-├────────────────────────┼───────────────────────────┤
-│ image_id               │ "employee_001.jpg"        │ (Primary Key)
-│ gps_latitude           │ 37.7749                   │
-│ gps_longitude          │ -122.4194                 │
-│ gps_altitude           │ 52.3                      │
-│ timestamp_original     │ 2026-02-20 14:23:45       │
-│ camera_make            │ "Apple"                   │
-│ camera_model           │ "iPhone 13 Pro"           │
-│ image_width            │ 4032                      │
-│ image_height           │ 3024                      │
-│ status                 │ "OK"                      │
-│ created_at             │ 2026-02-27 10:30:00       │
-└─────────────────────────────────────────────────────┘
-```
-
-### Why This Structure?
-
-- **Fast lookups**: Find metadata by image_id in milliseconds
-- **Queryable**: Can ask questions like "Show me all images from warehouse cameras"
-- **Scalable**: Handles millions of images
-- **Audit trail**: Tracks when metadata was captured
-
----
-
 ## Key Design Decisions
 
 ### 1. Why Extract BEFORE Bridge?
@@ -215,48 +182,39 @@ IMAGE_METADATA Table
 
 **Old way** (passwords in code):
 ```
-❌ Database password in configuration file
-❌ Risk of password leaks
-❌ Manual password rotation
+ Database password in configuration file
+ Risk of password leaks
+ Manual password rotation
 ```
 
 **New way** (Managed Identity):
 ```
-✅ Azure handles authentication automatically
-✅ No passwords in code
-✅ Automatic credential rotation
-✅ More secure
+ Azure handles authentication automatically
+ No passwords in code
+ Automatic credential rotation
+ More secure
 ```
 
 ---
 
 ## Azure Services Used
-```
-┌──────────────────────────────────────────────────┐
-│  Resource Group: rg-zerocorp-image-pipeline      │
-│                                                  │
-│  ┌────────────────────────┐                      │
-│  │ Azure Functions        │  $10-20/month        │
-│  │ (Pre-Processing)       │                      │
-│  └────────────────────────┘                      │
-│                                                  │
-│  ┌────────────────────────┐                      │
-│  │ Azure SQL Database     │  $5/month            │
-│  │ (Metadata Store)       │                      │
-│  └────────────────────────┘                      │
-│                                                  │
-│  ┌────────────────────────┐                      │
-│  │ Azure Blob Storage     │  Existing            │
-│  │ (Images)               │                      │
-│  └────────────────────────┘                      │
-│                                                  │
-│  ┌────────────────────────┐                      │
-│  │ Application Insights   │  $10-20/month        │
-│  │ (Monitoring)           │                      │
-│  └────────────────────────┘                      │
-│                                                  │
-│  Total: $25-45/month                             │
-└──────────────────────────────────────────────────┘
+```mermaid
+graph TB
+    subgraph RG["Resource Group: rg-zerocorp-image-pipeline"]
+        AF["Azure Functions<br/>(Pre-Processing)<br/><br/> $10-20/month"]
+        AT["Azure Tables<br/>(Metadata Store)<br/><br/> $5/month"]
+        BS["Azure Blob Storage<br/>(Images)<br/><br/> Existing"]
+        AI["Application Insights<br/>(Monitoring)<br/><br/> $10-20/month"]
+        
+        TOTAL["<br/>Total: $25-45/month * Based on usage"]
+    end
+    
+    style RG fill:#e6f3ff,stroke:#0078d4,stroke-width:3px,color:#000
+    style AF fill:#fff,stroke:#0078d4,stroke-width:2px,color:#000
+    style AT fill:#fff,stroke:#0078d4,stroke-width:2px,color:#000
+    style BS fill:#d4edda,stroke:#28a745,stroke-width:2px,color:#000
+    style AI fill:#fff,stroke:#0078d4,stroke-width:2px,color:#000
+    style TOTAL fill:#fff3cd,stroke:#ffc107,stroke-width:2px,color:#000,font-weight:bold
 ```
 
 ---
@@ -278,27 +236,50 @@ IMAGE_METADATA Table
 ---
 
 ## Monitoring Dashboard
+```mermaid
+graph TB
+    subgraph Dashboard["ZeroCorp Image Pipeline - Live Status"]
+        subgraph Processing["📊 Today's Processing"]
+            P1["Images Processed: 1,247"]
+            P2["EXIF Extracted: 99.8%"]
+            P3["Metadata Saved: 100%"]
+            P4["ML Success Rate: 94.2% ✅"]
+        end
+        
+        subgraph Performance["⚡ Performance"]
+            PERF1["Pre-Processing Time: 340ms avg"]
+            PERF2["Database Write Time: 18ms avg"]
+            PERF3["Metadata Query Time: 23ms avg"]
+        end
+        
+        subgraph Alerts["🚨 Alerts"]
+            A1["No active alerts ✅"]
+        end
+    end
+    
+    P1 ~~~ P2
+    P2 ~~~ P3
+    P3 ~~~ P4
+    
+    PERF1 ~~~ PERF2
+    PERF2 ~~~ PERF3
+    
+    style Dashboard fill:#f0f4f8,stroke:#0078d4,stroke-width:3px,color:#000
+    style Processing fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#000
+    style Performance fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000
+    style Alerts fill:#e8f5e9,stroke:#388e3c,stroke-width:2px,color:#000
+    
+    style P1 fill:#fff,stroke:#1976d2,color:#000
+    style P2 fill:#fff,stroke:#1976d2,color:#000
+    style P3 fill:#fff,stroke:#1976d2,color:#000
+    style P4 fill:#c8e6c9,stroke:#388e3c,stroke-width:2px,color:#000,font-weight:bold
+    
+    style PERF1 fill:#fff,stroke:#f57c00,color:#000
+    style PERF2 fill:#fff,stroke:#f57c00,color:#000
+    style PERF3 fill:#fff,stroke:#f57c00,color:#000
+    
+    style A1 fill:#c8e6c9,stroke:#388e3c,stroke-width:2px,color:#000,font-weight:bold
 ```
-┌─────────────────────────────────────────────────────┐
-│  ZeroCorp Image Pipeline - Live Status              │
-├─────────────────────────────────────────────────────┤
-│                                                     │
-│  📊 Today's Processing                              │
-│  ├─ Images Processed: 1,247                         │
-│  ├─ EXIF Extracted: 99.8%                           │
-│  ├─ Metadata Saved: 100%                            │
-│  └─ ML Success Rate: 94.2% ✅                      │
-│                                                     │
-│  ⚡ Performance                                    │
-│  ├─ Pre-Processing Time: 340ms avg                  │
-│  ├─ Database Write Time: 18ms avg                   │
-│  └─ Metadata Query Time: 23ms avg                   │
-│                                                     │
-│  🚨 Alerts                                          │
-│  └─ No active alerts ✅                             │
-└─────────────────────────────────────────────────────┘
-```
-
 ## Success Metrics
 
 
