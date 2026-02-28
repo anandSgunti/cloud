@@ -609,6 +609,3 @@ Retrieve EXIF → Combine → Process (SUCCESS)
 
 ---
 
-**Prepared By**: [Assessment Candidate]  
-**Date**: February 27, 2026  
-**Document Version**: 1.0
