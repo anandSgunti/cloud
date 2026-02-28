@@ -34,7 +34,7 @@ Unified pre-processing layer that solves both critical issues without modifying 
 - Changing or re-architecting Transfer Bridge internals.
 - Performing facial recognition/identity; only face presence detection is required.
 
-
+---
 
 ## Unified Architecture
 ```mermaid
