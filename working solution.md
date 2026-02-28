@@ -194,19 +194,23 @@ python main.py
 
 ### Console Output :&#x20;
 
-**EXIF Extracted  **
+**EXIF Extracted**
 
 ![image.png](/Screenshots/Picture7.png)
 
-EXIF Metadata Save to Azure Table
+**EXIF Metadata Save to Azure Table**
 
 ![image.png](/Screenshots/Picture8.png)
 
 ![image.png](/Screenshots/Picture9.png)
 
+
+**Face Detection and Metadata Insertion  after Tranfer Bridge**
+
 <br>
 
 <br>
+
 
 ![image.png](/Screenshots/Picture10.png)
 ![image.png](/Screenshots/Picture11.png)
